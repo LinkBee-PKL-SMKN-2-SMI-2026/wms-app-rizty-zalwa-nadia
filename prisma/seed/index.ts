@@ -1,69 +1,115 @@
 import 'dotenv/config';
 import { PrismaClient } from '../../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { genSaltSync, hashSync } from 'bcrypt';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
+const salt = genSaltSync(10)
 
+//hi
 async function main() {
   console.log('🌱 Mulai melakukan seeding data...');
-
-  // Seed Example 1
-  const example1 = await prisma.example.upsert({
-    where: { name: 'Laptop Asus ROG' },
+  
+  const User = await prisma.users.upsert({
+    where: { email: 'admin@wms.com' },
     update: {},
     create: {
-      name: 'Laptop Asus ROG',
-      description: 'Laptop gaming performa tinggi',
-      isActive: true,
-      items: {
-        create: [
-          { productName: 'Laptop ROG Strix G16', quantity: 5, price: 18000000 },
-          { productName: 'Mouse ROG Gladius', quantity: 10, price: 850000 },
-          { productName: 'Keyboard ROG Falchion', quantity: 8, price: 1200000 },
-        ],
-      },
+      name: 'Admin WMS',
+      email: 'admin@wms.com',
+      password: hashSync('admin123', salt),
+      role: 'ADMIN'
     },
-    include: { items: true },
   });
-
-  // Seed Example 2
-  const example2 = await prisma.example.upsert({
-    where: { name: 'Printer Epson L3210' },
+  
+  const elektronik = await prisma.categories.upsert({
+    where: { name: 'Elektronik' },
     update: {},
     create: {
-      name: 'Printer Epson L3210',
-      description: 'Printer multifungsi untuk kantor',
-      isActive: true,
-      items: {
-        create: [
-          { productName: 'Printer Epson L3210', quantity: 3, price: 3500000 },
-          { productName: 'Tinta Botol 664', quantity: 20, price: 75000 },
-        ],
-      },
+      name: 'Elektronik',
+      description: 'Perangkat elektronik dan gadget'
     },
-    include: { items: true },
   });
-
-  // Seed Example 3
-  const example3 = await prisma.example.upsert({
-    where: { name: 'Monitor Samsung 24 inch' },
+  const furniture = await prisma.categories.upsert({
+    where: { name: 'Furniture' },
     update: {},
     create: {
-      name: 'Monitor Samsung 24 inch',
-      description: 'Monitor LED full HD',
-      isActive: false,
-      items: {
-        create: [
-          { productName: 'Samsung Odyssey G3 24"', quantity: 7, price: 2800000 },
-        ],
-      },
+      name: 'Furniture',
+      description: 'Peralatan mebel kantor dan rumah'
     },
-    include: { items: true },
   });
+  const atk = await prisma.categories.upsert({
+    where: { name: 'ATK' },
+    update: {},
+    create: {
+      name: 'ATK',
+      description: 'Alat Tulis Kantor'
+    },
+  });
+  
+  const rakA1 = await prisma.locations.upsert({
+    where: { code: 'RAK-A1' },
+    update: {},
+    create: {
+      name: 'Rak A1',
+      code: 'RAK-A1'
+    },
+  });
+  const rakA2 = await prisma.locations.upsert({
+    where: { code: 'RAK-A2' },
+    update: {},
+    create: {
+      name: 'Rak A2',
+      code: 'RAK-A2' },
+  });
+  const gudangB1 = await prisma.locations.upsert({
+    where: { code: 'GUD-B1' },
+    update: {},
+    create: { name: 'Gudang B1', code: 'GUD-B1' },
+  });
+  
+  const productsData = [
+    { 
+        name: 'Laptop Asus', sku: 'LAP-ASUS-001', 
+        description: 'Laptop performa tinggi untuk kerja', 
+        stock: 5, minimumStock: 2, 
+        categoryId: elektronik.id, locationId: rakA1.id 
+    },
+    { 
+        name: 'Meja Kantor', sku: 'FUR-MEJA-001', 
+        description: 'Meja kayu minimalis', 
+        stock: 10, minimumStock: 3, 
+        categoryId: furniture.id, locationId: gudangB1.id 
+    },
+    { 
+        name: 'Kursi Gaming', sku: 'FUR-KURSI-001', 
+        description: 'Kursi ergonomis nyaman', 
+        stock: 8, minimumStock: 2, 
+        categoryId: furniture.id, locationId: gudangB1.id 
+    },
+    { 
+        name: 'Kertas A4', sku: 'ATK-KERTAS-001', 
+        description: 'Kertas HVS 80gr', 
+        stock: 100, minimumStock: 20, 
+        categoryId: atk.id, locationId: rakA2.id 
+    },
+    { 
+        name: 'Mouse Wireless', sku: 'ELK-MOUSE-001', 
+        description: 'Mouse ergonomis tanpa kabel', 
+        stock: 15, minimumStock: 5, 
+        categoryId: elektronik.id, locationId: rakA1.id 
+    },
+  ];
 
-  console.log('✅ Seeding selesai! Data yang dibuat:');
-  console.log({ example1, example2, example3 });
+  for (const p of productsData) {
+    await prisma.products.upsert({
+      where: { sku: p.sku },
+      update: {},
+      create: p,
+    });
+  }
+
+  console.log('✅ Seeding selesai!');
 }
 
 main()
