@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import { PrismaClient } from '../../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import bcrypt from "bcrypt";
+
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
@@ -8,62 +10,170 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log('🌱 Mulai melakukan seeding data...');
 
-  // Seed Example 1
-  const example1 = await prisma.example.upsert({
-    where: { name: 'Laptop Asus ROG' },
+  const passwordHash = await bcrypt.hash("admin123", 10);
+
+  const admin = await prisma.users.upsert({
+    where: {
+      email: "admin@wms.com",
+    },
     update: {},
     create: {
-      name: 'Laptop Asus ROG',
-      description: 'Laptop gaming performa tinggi',
+      name: "Admin WMS",
+      email: "admin@wms.com",
+      password: passwordHash,
+      role: "ADMIN",
       isActive: true,
-      items: {
-        create: [
-          { productName: 'Laptop ROG Strix G16', quantity: 5, price: 18000000 },
-          { productName: 'Mouse ROG Gladius', quantity: 10, price: 850000 },
-          { productName: 'Keyboard ROG Falchion', quantity: 8, price: 1200000 },
-        ],
-      },
     },
-    include: { items: true },
   });
 
-  // Seed Example 2
-  const example2 = await prisma.example.upsert({
-    where: { name: 'Printer Epson L3210' },
+   const elektronik = await prisma.categories.upsert({
+    where: {
+      name: "Elektronik",
+    },
     update: {},
     create: {
-      name: 'Printer Epson L3210',
-      description: 'Printer multifungsi untuk kantor',
-      isActive: true,
-      items: {
-        create: [
-          { productName: 'Printer Epson L3210', quantity: 3, price: 3500000 },
-          { productName: 'Tinta Botol 664', quantity: 20, price: 75000 },
-        ],
-      },
+      name: "Elektronik",
+      description: "Produk elektronik",
     },
-    include: { items: true },
   });
 
-  // Seed Example 3
-  const example3 = await prisma.example.upsert({
-    where: { name: 'Monitor Samsung 24 inch' },
+  const furniture = await prisma.categories.upsert({
+    where: {
+      name: "Furniture",
+    },
     update: {},
     create: {
-      name: 'Monitor Samsung 24 inch',
-      description: 'Monitor LED full HD',
-      isActive: false,
-      items: {
-        create: [
-          { productName: 'Samsung Odyssey G3 24"', quantity: 7, price: 2800000 },
-        ],
-      },
+      name: "Furniture",
+      description: "Perabotan kantor",
     },
-    include: { items: true },
   });
 
-  console.log('✅ Seeding selesai! Data yang dibuat:');
-  console.log({ example1, example2, example3 });
+  const atk = await prisma.categories.upsert({
+    where: {
+      name: "ATK",
+    },
+    update: {},
+    create: {
+      name: "ATK",
+      description: "Alat tulis kantor",
+    },
+  });
+
+   const rakA1 = await prisma.locations.upsert({
+    where: {
+      code: "A1",
+    },
+    update: {},
+    create: {
+      name: "Rak A1",
+      code: "A1",
+    },
+  });
+
+  const rakA2 = await prisma.locations.upsert({
+    where: {
+      code: "A2",
+    },
+    update: {},
+    create: {
+      name: "Rak A2",
+      code: "A2",
+    },
+  });
+
+  const gudangB1 = await prisma.locations.upsert({
+    where: {
+      code: "B1",
+    },
+    update: {},
+    create: {
+      name: "Gudang B1",
+      code: "B1",
+    },
+  });
+
+   await prisma.products.upsert({
+    where: {
+      sku: "ELK-001",
+    },
+    update: {},
+    create: {
+      name: "Laptop",
+      sku: "ELK-001",
+      description: "Laptop untuk kebutuhan kantor",
+      stock: 10,
+      minimumStock: 2,
+      categoryId: elektronik.id,
+      locationId: rakA1.id,
+    },
+  });
+
+  await prisma.products.upsert({
+    where: {
+      sku: "ELK-002",
+    },
+    update: {},
+    create: {
+      name: "Keyboard",
+      sku: "ELK-002",
+      description: "Keyboard untuk komputer",
+      stock: 20,
+      minimumStock: 5,
+      categoryId: elektronik.id,
+      locationId: rakA1.id,
+    },
+  });
+
+  await prisma.products.upsert({
+    where: {
+      sku: "FUR-001",
+    },
+    update: {},
+    create: {
+      name: "Meja Kantor",
+      sku: "FUR-001",
+      description: "Meja untuk kebutuhan kantor",
+      stock: 5,
+      minimumStock: 1,
+      categoryId: furniture.id,
+      locationId: rakA2.id,
+    },
+  });
+
+  await prisma.products.upsert({
+    where: {
+      sku: "FUR-002",
+    },
+    update: {},
+    create: {
+      name: "Kursi Kantor",
+      sku: "FUR-002",
+      description: "Kursi untuk kebutuhan kantor",
+      stock: 10,
+      minimumStock: 2,
+      categoryId: furniture.id,
+      locationId: gudangB1.id,
+    },
+  });
+
+  await prisma.products.upsert({
+    where: {
+      sku: "ATK-001",
+    },
+    update: {},
+    create: {
+      name: "Buku Tulis",
+      sku: "ATK-001",
+      description: "Buku tulis untuk kebutuhan kantor",
+      stock: 50,
+      minimumStock: 10,
+      categoryId: atk.id,
+      locationId: rakA2.id,
+    },
+  });
+
+  console.log("✅ Seeding selesai! Data yang dibuat:");
+  console.log("Admin:", admin.email);
 }
 
 main()
