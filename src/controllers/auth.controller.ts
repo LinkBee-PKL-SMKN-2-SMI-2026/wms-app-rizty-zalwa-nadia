@@ -1,6 +1,6 @@
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/AppError';
-import { Prismaclient } from '../generated/prisma/client';
+import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg} from '@prisma/adapter-pg';
 import { logger } from '../utils/logger';
 import { type loginRequest, type registerRequest } from '../types/auth.dto';
@@ -9,13 +9,13 @@ import { generateAcessToken, generateRefreshToken } from '../utils/jwt':
 import { TokenPayload } from '../types/auth.type';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
-const prisma new Prismaclient({ adapter });
+const prisma = new Prismaclient({ adapter });
 
 export const register catchAsync(async (req, res) => {
   const { name, email, password } = req.body as registerRequest;
   
-  const exitingUser await prisma.Users.findUnique({where: { email } });
-  if (!exitingUser) {
+  const existingUser await prisma.Users.findUnique({where: { email } });
+  if (existingUser) {
     throw new AppError(`Email ${email} telah digunakan`, 400);
   }
   
