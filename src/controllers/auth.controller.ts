@@ -14,7 +14,7 @@ const prisma = new Prismaclient({ adapter });
 export const register catchAsync(async (req, res) => {
   const { name, email, password } = req.body as registerRequest;
   
-  const existingUser await prisma.Users.findUnique({where: { email } });
+  const existingUser = await prisma.Users.findUnique({where: { email } });
   if (existingUser) {
     throw new AppError(`Email ${email} telah digunakan`, 400);
   }
