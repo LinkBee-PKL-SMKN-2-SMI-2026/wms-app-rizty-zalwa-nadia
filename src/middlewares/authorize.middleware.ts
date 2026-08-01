@@ -1,3 +1,12 @@
+import { Response, NextFunction } from 'express';
+import { AppError } from '../utils/AppError';
+import { AuthRequest } from '../models/auth.model';
+import { PrismaClient } from '../generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
+
 export const authorize = (...roles: string[]) => {
   return (req: AuthRequest, _res: Response, next: NextFunction): void => {
     if (!req.user) {
