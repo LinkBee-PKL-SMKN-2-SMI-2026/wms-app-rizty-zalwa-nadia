@@ -11,7 +11,7 @@ async function main() {
   console.log('🌱 Mulai melakukan seeding data...');
 
   //USER ADMIN
-  const User = await prisma.users.upsert({
+  const admin = await prisma.users.upsert({
     where: { email: 'admin@wms.com' },
     update: {},
     create: {
