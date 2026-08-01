@@ -21,8 +21,16 @@ import {
 } from '../controllers/example.controller';
 import { validate } from '../middlewares/validate.middleware';
 import { AppError } from '../utils/AppError';
+import { authenticate } from '../middlewares/authenticate.middleware';
+import { authorize } from '../middlewares/authorize.middleware';
 
 const router = Router();
+
+// Hanya ADMIN yang boleh create
+router.post('/', authenticate, authorize('ADMIN'), validate(CreateSchema), createHandler);
+
+// Semua yang login boleh akses
+router.get('/', authenticate, getAllHandler);
 
 // GET /api/example/ - Ambil semua data (dengan pagination, search, filter, sort)
 router.get('/', validate(GetAllExampleSchema), getAllExamples);
