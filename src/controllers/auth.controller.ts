@@ -5,23 +5,23 @@ import { PrismaPg} from '@prisma/adapter-pg';
 import { logger } from '../utils/logger';
 import { type loginRequest, type registerRequest } from '../types/auth.dto';
 import bcrypt from 'bcrypt';
-import { generateAcessToken, generateRefreshToken } from '../utils/jwt':
+import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
 import { TokenPayload } from '../types/auth.type';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
-const prisma = new Prismaclient({ adapter });
+const prisma = new PrismaClient({ adapter });
 
 export const register catchAsync(async (req, res) => {
   const { name, email, password } = req.body as registerRequest;
   
-  const existingUser = await prisma.Users.findUnique({where: { email } });
+  const existingUser = await prisma.users.findUnique({where: { email } });
   if (existingUser) {
     throw new AppError(`Email ${email} telah digunakan`, 400);
   }
   
   const hashedPassword = await bcrypt.hash(password, 10);
   //simp3n ke database
-  const newUser = await prisma.Users.create({
+  const newUser = await prisma.users.create({
     data: { name, email, password: hashedPassword },
   });
   
@@ -37,7 +37,7 @@ export const login = catchAsync(async (req, res) => {
   //qmbil data frm req body
   const { email, password } = req.body as LoginRequest;
   
-  const user = await prisma.Users.findUnique({ where: { email } });
+  const user = await prisma.users.findUnique({ where: { email } });
   if (!user) {
     throw new AppError('Email atau password salah', 401);
   }
@@ -56,7 +56,7 @@ export const login = catchAsync(async (req, res) => {
   const refreshToken = generateRefreshToken(payload);
 
   //nyimpen r3fresh token ke Database
-  await prisma.Users.update({
+  await prisma.users.update({
     where: { id: user.id },
     data: { refreshToken: refreshToken },
   });
