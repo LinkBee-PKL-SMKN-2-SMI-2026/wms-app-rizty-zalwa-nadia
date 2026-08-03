@@ -11,7 +11,7 @@ import { TokenPayload } from '../types/auth.type';
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
-export const register catchAsync(async (req, res) => {
+export const register = catchAsync(async (req, res) => {
   const { name, email, password } = req.body as registerRequest;
   
   const existingUser = await prisma.users.findUnique({where: { email } });
