@@ -5,7 +5,7 @@ import { genSaltSync, hashSync } from 'bcrypt';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
-const salt = genSaltSync(10)
+const salt = genSaltSync(10);
 
 async function main() {
   console.log('🌱 Mulai melakukan seeding data...');
@@ -22,7 +22,7 @@ async function main() {
       isActive: true,
     },
   });
-  
+
   // CATEGORIES
   const elektronik = await prisma.categories.upsert({
     where: { name: 'Elektronik' },

@@ -15,9 +15,9 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction): 
   try {
     const payload = verifyAccessToken(token);
     (req as AuthRequest).user = payload;
-    
+
     next();
-  } catch (_error) {
+  } catch {
     return next(new AppError('Token tidak valid atau telah kadaluwarsa', 401));
   }
 };

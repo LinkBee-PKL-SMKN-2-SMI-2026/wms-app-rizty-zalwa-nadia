@@ -16,15 +16,15 @@ export const authorize = (...roles: string[]) => {
     const user = await prisma.users.findUnique({
       where: { id: req.user.userId },
     });
-    
+
     if (!user) {
       return next(new AppError('User tidak ditemukan', 404));
     }
-    
+
     if (!roles.includes(user.role)) {
       return next(new AppError('Forbidden: Anda tidak memiliki akses ke fitur ini', 403));
     }
-    
+
     next();
   };
 };
