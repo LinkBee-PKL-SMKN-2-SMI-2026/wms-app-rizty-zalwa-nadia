@@ -3,7 +3,7 @@ import { AppError } from '../utils/AppError';
 import { verifyAccessToken } from '../utils/jwt';
 import { AuthRequest } from '../models/auth.model';
 
-export const authenticate = (req: Request, _res: Response, next: NextFunction) => {
+export const authenticate = (req: Request, _res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -17,7 +17,7 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction) =
     (req as AuthRequest).user = payload;
     
     next();
-  } catch (error) {
+  } catch (_error) {
     return next(new AppError('Token tidak valid atau telah kadaluwarsa', 401));
   }
 };
