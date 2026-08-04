@@ -1,26 +1,27 @@
-import type { Response, NextFunction } from "express";
+import type { Response, NextFunction } from 'express';
 
-import type { AuthRequest } from "../models/auth.model";
-import prisma from "../lib/prisma";
-import { AppError } from "../utils/AppError";
+import type { AuthRequest } from '../models/auth.model';
+import prisma from '../lib/prisma';
+import { AppError } from '../utils/AppError';
 
 export const authorize =
   (...roles: string[]) =>
-  async (req: AuthRequest, _res: Response, next: NextFunction) => {
+  async (req: AuthRequest, _res: Response, next: NextFunction): Promise<void> => {
     if (!req.user) {
-      return next(new AppError("Unauthorized", 401));
+      return next(new AppError('Unauthorized', 401));
     }
 
     try {
-      const user = await prisma.users.findUnique({where: {  id: req.user.userId, },
-});
+      const user = await prisma.users.findUnique({
+        where: { id: req.user.userId },
+      });
 
       if (!user) {
-        return next(new AppError("User not found", 404));
+        return next(new AppError('User not found', 404));
       }
 
       if (!roles.includes(user.role.toString())) {
-        return next(new AppError("Forbidden", 403));
+        return next(new AppError('Forbidden', 403));
       }
 
       next();

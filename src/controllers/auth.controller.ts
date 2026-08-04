@@ -1,15 +1,12 @@
-import type { Request, Response } from "express";
-import bcrypt from "bcrypt";
+import type { Request, Response } from 'express';
+import bcrypt from 'bcrypt';
 
-import prisma from "../lib/prisma";
-import { catchAsync } from "../utils/catchAsync";
-import { AppError } from "../utils/AppError";
-import { logger } from "../utils/logger";
-import type { AuthRequest } from "../models/auth.model";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-} from "../utils/jwt";
+import prisma from '../lib/prisma';
+import { catchAsync } from '../utils/catchAsync';
+import { AppError } from '../utils/AppError';
+import { logger } from '../utils/logger';
+import type { AuthRequest } from '../models/auth.model';
+import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
 export const getMe = catchAsync(async (req: AuthRequest, res: Response) => {
   const { userId } = req.user!;
 
@@ -28,14 +25,14 @@ export const getMe = catchAsync(async (req: AuthRequest, res: Response) => {
   });
 
   if (!user) {
-    throw new AppError("User tidak ditemukan", 404);
+    throw new AppError('User tidak ditemukan', 404);
   }
 
   logger.info(`Get user profile: ${user.email}`);
 
   res.json({
     success: true,
-    message: "Data user berhasil diambil",
+    message: 'Data user berhasil diambil',
     data: user,
   });
 });
@@ -49,7 +46,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   });
 
   if (existingUser) {
-    throw new AppError("Email already exists", 400);
+    throw new AppError('Email already exists', 400);
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -63,10 +60,10 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   });
 
   const payload = {
-  userId: user.id,
-  email: user.email,
-  role: user.role,
-};
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+  };
 
   const accessToken = generateAccessToken(payload);
   const refreshToken = generateRefreshToken(payload);
@@ -74,7 +71,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   logger.info(`User registered: ${user.email}`);
 
   res.status(201).json({
-    message: "Register success",
+    message: 'Register success',
     accessToken,
     refreshToken,
   });
@@ -90,20 +87,20 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   });
 
   if (!user) {
-    throw new AppError("Invalid email or password", 401);
+    throw new AppError('Invalid email or password', 401);
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
 
   if (!isMatch) {
-    throw new AppError("Invalid email or password", 401);
+    throw new AppError('Invalid email or password', 401);
   }
 
- const payload = {
-  userId: user.id,
-  email: user.email,
-  role: user.role,
-};
+  const payload = {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+  };
 
   const accessToken = generateAccessToken(payload);
   const refreshToken = generateRefreshToken(payload);
@@ -111,7 +108,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   logger.info(`User login: ${user.email}`);
 
   res.status(200).json({
-    message: "Login success",
+    message: 'Login success',
     accessToken,
     refreshToken,
   });
