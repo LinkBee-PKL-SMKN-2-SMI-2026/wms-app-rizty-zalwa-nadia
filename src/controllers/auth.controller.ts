@@ -4,6 +4,7 @@ import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { logger } from '../utils/logger';
 import { type LoginRequest, type RegisterRequest } from '../models/auth.dto';
+import { type TokenPayload, type AuthRequest } from '../models/auth.model';
 import bcrypt from 'bcrypt';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
 import { TokenPayload } from '../types/auth.type';
