@@ -69,3 +69,26 @@ export const login = catchAsync(async (req, res) => {
     refreshToken,
   });
 });
+
+export const getMe = catchAsync(async (req: AuthRequest, res: Response) => {
+  const { userId } = req.user as TokenPayload;
+
+  const user = await prisma.users.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      isActive: true,
+      createdAt: true,
+    },
+  });
+
+  if (!user) {
+    throw new AppError('User tidak ditemukan', 404);
+  }
+
+  res.json({ success: true, message: 'Data user berhasil diambil', data: user });
+});
+
