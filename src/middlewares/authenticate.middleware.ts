@@ -13,7 +13,7 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction): 
   const token = authHeader.split(' ')[1];
 
   try {
-    const payload = verifyAccessToken(token);
+    const payload = verifyAccessToken(token!);
     (req as AuthRequest).user = payload;
 
     next();
