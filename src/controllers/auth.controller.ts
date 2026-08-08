@@ -88,7 +88,11 @@ export const getMe = catchAsync(async (req: AuthRequest, res: Response) => {
   if (!user) {
     throw new AppError('User tidak ditemukan', 404);
   }
-
-  res.json({ success: true, message: 'Data user berhasil diambil', data: user });
+  
+  res.status(200).json({ 
+    success: true, 
+    message: 'Data user berhasil diambil', 
+    data: user 
+  });
 });
-
+  
