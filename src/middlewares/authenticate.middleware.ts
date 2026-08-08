@@ -1,7 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/AppError';
 import { verifyAccessToken } from '../utils/jwt';
-import { AuthRequest } from '../models/auth.model';
+import type { AuthRequest } from '../models/auth.model';
+
 
 export const authenticate = (req: Request, _res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
