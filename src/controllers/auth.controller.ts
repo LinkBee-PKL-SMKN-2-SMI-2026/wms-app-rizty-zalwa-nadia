@@ -7,7 +7,6 @@ import { type LoginRequest, type RegisterRequest } from '../models/auth.dto';
 import { type TokenPayload, type AuthRequest } from '../models/auth.model';
 import bcrypt from 'bcrypt';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
-import { TokenPayload } from '../types/auth.type';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
