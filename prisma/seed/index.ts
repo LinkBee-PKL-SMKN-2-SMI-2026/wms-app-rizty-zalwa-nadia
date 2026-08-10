@@ -1,39 +1,29 @@
 import 'dotenv/config';
-import bcrypt from 'bcrypt';
 import { PrismaClient } from '../../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { genSaltSync, hashSync } from 'bcrypt';
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-});
-
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
+const salt = genSaltSync(10);
 
 async function main() {
   console.log('🌱 Mulai melakukan seeding data...');
 
-  // ==========================
-  // USER ADMIN
-  // ==========================
-  const hashedPassword = await bcrypt.hash('admin123', 10);
-
+  //USER ADMIN
   const admin = await prisma.users.upsert({
-    where: {
-      email: 'admin@wms.com',
-    },
+    where: { email: 'admin@wms.com' },
     update: {},
     create: {
       name: 'Administrator',
       email: 'admin@wms.com',
-      password: hashedPassword,
+      password: hashSync('admin123', salt),
       role: 'ADMIN',
       isActive: true,
     },
   });
 
-  // ==========================
   // CATEGORIES
-  // ==========================
   const elektronik = await prisma.categories.upsert({
     where: { name: 'Elektronik' },
     update: {},
@@ -61,9 +51,7 @@ async function main() {
     },
   });
 
-  // ==========================
   // LOCATIONS
-  // ==========================
   const rakA1 = await prisma.locations.upsert({
     where: { code: 'A1' },
     update: {},
@@ -91,9 +79,7 @@ async function main() {
     },
   });
 
-  // ==========================
   // PRODUCTS
-  // ==========================
   await prisma.products.createMany({
     data: [
       {
