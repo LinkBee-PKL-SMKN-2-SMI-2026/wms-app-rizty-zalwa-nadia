@@ -17,19 +17,24 @@ export const GetAllCategorySchema = z.object({
 });
 
 export const GetCategoryByIdSchema = z.object({
- params: z.object({
-  id: z.string().uuid(`ID kategori tidak valid`),
- }),
+  params: z.object({
+    id: z.string().uuid(`ID kategori tidak valid`),
+  }),
 });
 
 export const UpdateCategorySchema = z.object({
- params: z.object({
-  id: z.string().uuid(`ID kategori tidak valid`),
- }),
- body: z.object({
-  name: z.string().min(2, 'Nama minimal 2 karakter'),
+  params: z.object({
+    id: z.string().uuid(`ID kategori tidak valid`),
+  }),
+  body: z.object({
+    name: z.string().min(2, 'Nama minimal 2 karakter'),
     description: z.string().optional(),
     isActive: z.boolean().optional(),
- }),
+  }),
 });
 
+export const DeleteCategorySchema = z.object({
+  params: z.object({
+    id: z.string().uid(`ID kategori tidak valid`),
+  }),
+});
