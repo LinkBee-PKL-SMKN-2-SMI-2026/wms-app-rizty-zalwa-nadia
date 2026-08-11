@@ -4,7 +4,6 @@ export const CreateLocationSchema = z.object({
   body: z.object({
     name: z.string().min(3, 'Nama minimal 3 karakter'),
     code: z.string().min(1, 'Code wajib diisi').max(10, 'Code maksimal 10 karakter'),
-    description: z.string().optional(),
   }),
 });
 
@@ -30,7 +29,6 @@ export const UpdateLocationSchema = z.object({
   body: z.object({
     name: z.string().min(3, 'Nama minimal 3 karakter'),
     code: z.string().min(1).max(10),
-    description: z.string().optional(),
     isActive: z.boolean().optional(),
   }),
 });
