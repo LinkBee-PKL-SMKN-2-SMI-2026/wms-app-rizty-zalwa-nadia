@@ -2,7 +2,6 @@ import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/AppError';
 import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-
 import {
   type CreateCategoryRequest,
   type GetAllCategoryRequest,
@@ -18,6 +17,7 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
+//CREATE
 export const createCategory = catchAsync(async (req, res) => {
   const { name, description } = req.body as CreateCategoryRequest;
 
@@ -43,6 +43,7 @@ export const createCategory = catchAsync(async (req, res) => {
   });
 });
 
+//GET ALL
 export const getAllProducts = catchAsync(async (req, res) => {
   const {
     page = 1,
@@ -116,5 +117,30 @@ export const getAllProducts = catchAsync(async (req, res) => {
       total,
       totalPages: Math.ceil(total / limit),
     },
+  });
+});
+
+export const getCategoryById = catchAsync(async (req, res) => {
+  const { id } = req.params as GetCategoryByIdRequest;
+
+  const category = await prisma.categories.findUnique({
+    where: { id },
+    include: {
+      _count: {
+        select: {
+          products: true,
+        },
+      },
+    },
+  });
+
+  if (!category) {
+    throw new AppError('Kategori tidak ditemukan', 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Data kategori berhasil diambil',
+    data: category,
   });
 });
