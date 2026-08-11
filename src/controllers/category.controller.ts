@@ -144,3 +144,77 @@ export const getCategoryById = catchAsync(async (req, res) => {
     data: category,
   });
 });
+
+//UPDTE
+export const updateCategory = catchAsync(async (req, res) => {
+  const { id } = req.params as UpdateCategoryParams;
+  const { name, description, isActive } = req.body as UpdateCategoryRequest;
+
+  const category = await prisma.categories.findUnique({
+    where: { id },
+  });
+
+  if (!category) {
+    throw new AppError('Kategori tidak ditemukan', 404);
+  }
+
+  const duplicate = await prisma.categories.findFirst({
+    where: {
+      name,
+      NOT: {
+        id,
+      },
+    },
+  });
+
+  if (duplicate) {
+    throw new AppError('Nama kategori sudah digunakan', 400);
+  }
+
+  const updatedCategory = await prisma.categories.update({
+    where: { id },
+    data: {
+      name,
+      description,
+      isActive,
+    },
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Kategori berhasil diperbarui',
+    data: updatedCategory,
+  });
+});
+
+//DELETE
+export const deleteCategory = catchAsync(async (req, res) => {
+  const { id } = req.params as DeleteCategoryRequest;
+
+  const category = await prisma.categories.findUnique({
+    where: { id },
+  });
+
+  if (!category) {
+    throw new AppError('Kategori tidak ditemukan', 404);
+  }
+
+  const productCount = await prisma.products.count({
+    where: {
+      categoryId: id,
+    },
+  });
+
+  if (productCount > 0) {
+    throw new AppError('Kategori tidak dapat dihapus karena masih digunakan oleh produk', 400);
+  }
+
+  await prisma.categories.delete({
+    where: { id },
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Kategori berhasil dihapus',
+  });
+});
