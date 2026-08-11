@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const CreateCategorySchema = z.object({
   body: z.object({
-    name: z.string().min(3, 'Nama minimal 3 karakter'),
+    name: z.string().min(2, 'Nama minimal 2 karakter'),
     description: z.string().optional(),
   }),
 });
@@ -22,3 +22,19 @@ export const GetCategoryByIdSchema = z.object({
  }),
 });
 
+export const UpdateCategorySchema = z.object({
+ params: z.object({
+  id: z.string().uuid(`ID kategori tidak valid`),
+ }),
+ body: z.object({
+  name: z.string().min(2, 'Nama minimal 2 karakter'),
+    description: z.string().optional(),
+    isActive: z.boolean().optional(),
+ }),
+});
+
+export const DeleteCategorySchema = z.object({
+ params: z.object({
+  id: z.string().uid(`ID kategori tidak valid`),
+ }),
+});
