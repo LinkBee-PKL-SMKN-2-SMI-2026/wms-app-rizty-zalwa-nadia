@@ -42,3 +42,79 @@ export const createCategory = catchAsync(async (req, res) => {
     data: category,
   });
 });
+
+export const getAllProducts = catchAsync(async (req, res) => {
+  const {
+    page = 1,
+    limit = 10,
+    search,
+    sort,
+    categoryId,
+    locationId,
+  } = req.query as unknown as GetAllProductRequest;
+
+  const skip = (page - 1) * limit;
+
+  const where = {
+    ...(search
+      ? {
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: 'insensitive' as const,
+              },
+            },
+            {
+              sku: {
+                contains: search,
+                mode: 'insensitive' as const,
+              },
+            },
+          ],
+        }
+      : {}),
+    ...(categoryId ? { categoryId } : {}),
+    ...(locationId ? { locationId } : {}),
+  };
+
+  let orderBy = {};
+
+  if (sort === 'name_asc') {
+    orderBy = { name: 'asc' };
+  } else if (sort === 'name_desc') {
+    orderBy = { name: 'desc' };
+  } else if (sort === 'stock_asc') {
+    orderBy = { stock: 'asc' };
+  } else if (sort === 'stock_desc') {
+    orderBy = { stock: 'desc' };
+  } else {
+    orderBy = { createdAt: 'desc' };
+  }
+
+  const [products, total] = await Promise.all([
+    prisma.products.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy,
+      include: {
+        category: true,
+        location: true,
+      },
+    }),
+    prisma.products.count({ where }),
+  ]);
+
+  res.status(200).json({
+    success: true,
+    message: 'Data produk berhasil diambil',
+    data: products,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  });
+});
