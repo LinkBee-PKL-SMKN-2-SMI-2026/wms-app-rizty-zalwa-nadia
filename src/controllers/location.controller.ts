@@ -20,8 +20,7 @@ const prisma = new PrismaClient({ adapter });
 
 //CRETAE
 export const createLocation = catchAsync(async (req, res) => {
-  const { name, code, description } =
-    req.body as CreateLocationRequest;
+  const { name, code, description } = req.body as CreateLocationRequest;
 
   const existingName = await prisma.locations.findUnique({
     where: { name },
@@ -56,12 +55,7 @@ export const createLocation = catchAsync(async (req, res) => {
 
 //GET ALL
 export const getAllLocations = catchAsync(async (req, res) => {
-  const {
-    page = 1,
-    limit = 10,
-    search,
-    sort,
-  } = req.query as unknown as GetAllLocationRequest;
+  const { page = 1, limit = 10, search, sort } = req.query as unknown as GetAllLocationRequest;
 
   const skip = (page - 1) * limit;
 
@@ -148,8 +142,7 @@ export const getLocationById = catchAsync(async (req, res) => {
 //UPDA3E
 export const updateLocation = catchAsync(async (req, res) => {
   const { id } = req.params as UpdateLocationParams;
-  const { name, code, description, isActive } =
-    req.body as UpdateLocationRequest;
+  const { name, code, description, isActive } = req.body as UpdateLocationRequest;
 
   const location = await prisma.locations.findUnique({
     where: { id },
@@ -217,10 +210,7 @@ export const deleteLocation = catchAsync(async (req, res) => {
   });
 
   if (productCount > 0) {
-    throw new AppError(
-      'Lokasi tidak dapat dihapus karena masih digunakan oleh produk',
-      400,
-    );
+    throw new AppError('Lokasi tidak dapat dihapus karena masih digunakan oleh produk', 400);
   }
 
   await prisma.locations.delete({
