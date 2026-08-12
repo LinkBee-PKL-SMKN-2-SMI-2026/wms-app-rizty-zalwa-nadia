@@ -35,6 +35,6 @@ export const UpdateCategorySchema = z.object({
 
 export const DeleteCategorySchema = z.object({
   params: z.object({
-    id: z.string().uid(`ID kategori tidak valid`),
+    id: z.string().uuid(`ID kategori tidak valid`),
   }),
 });
