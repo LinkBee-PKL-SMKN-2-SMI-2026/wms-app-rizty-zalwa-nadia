@@ -45,12 +45,7 @@ export const createCategory = catchAsync(async (req, res) => {
 
 //GET ALL
 export const getAllCategories = catchAsync(async (req, res) => {
-  const {
-    page = 1,
-    limit = 10,
-    search,
-    sort,
-  } = req.query as unknown as GetAllCategoryRequest;
+  const { page = 1, limit = 10, search, sort } = req.query as unknown as GetAllCategoryRequest;
 
   const skip = (page - 1) * limit;
 
@@ -65,17 +60,14 @@ export const getAllCategories = catchAsync(async (req, res) => {
       : {}),
   };
 
-  let orderBy = {};
-
-  if (sort === 'name_asc') {
-    orderBy = { name: 'asc' };
-  } else if (sort === 'name_desc') {
-    orderBy = { name: 'desc' };
-  } else if (sort === 'created_asc') {
-    orderBy = { createdAt: 'asc' };
-  } else {
-    orderBy = { createdAt: 'desc' };
-  }
+  const orderBy =
+    sort === 'name_asc'
+      ? { name: 'asc' }
+      : sort === 'name_desc'
+        ? { name: 'desc' }
+        : sort === 'created_asc'
+          ? { createdAt: 'asc' }
+          : { createdAt: 'desc' };
 
   const [categories, total] = await Promise.all([
     prisma.categories.findMany({

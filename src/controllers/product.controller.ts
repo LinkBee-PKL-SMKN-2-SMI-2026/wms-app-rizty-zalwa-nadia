@@ -100,19 +100,16 @@ export const getAllProducts = catchAsync(async (req, res) => {
     ...(locationId ? { locationId } : {}),
   };
 
-  let orderBy = {};
-
-  if (sort === 'name_asc') {
-    orderBy = { name: 'asc' };
-  } else if (sort === 'name_desc') {
-    orderBy = { name: 'desc' };
-  } else if (sort === 'stock_asc') {
-    orderBy = { stock: 'asc' };
-  } else if (sort === 'stock_desc') {
-    orderBy = { stock: 'desc' };
-  } else {
-    orderBy = { createdAt: 'desc' };
-  }
+  const orderBy =
+    sort === 'name_asc'
+      ? { name: 'asc' }
+      : sort === 'name_desc'
+        ? { name: 'desc' }
+        : sort === 'stock_asc'
+          ? { stock: 'asc' }
+          : sort === 'stock_desc'
+            ? { stock: 'desc' }
+            : { createdAt: 'desc' };
 
   const [products, total] = await Promise.all([
     prisma.products.findMany({

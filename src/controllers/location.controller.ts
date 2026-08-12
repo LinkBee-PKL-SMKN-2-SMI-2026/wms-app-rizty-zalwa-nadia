@@ -78,17 +78,14 @@ export const getAllLocations = catchAsync(async (req, res) => {
       }
     : {};
 
-  let orderBy = {};
-
-  if (sort === 'name_asc') {
-    orderBy = { name: 'asc' };
-  } else if (sort === 'name_desc') {
-    orderBy = { name: 'desc' };
-  } else if (sort === 'code_asc') {
-    orderBy = { code: 'asc' };
-  } else {
-    orderBy = { createdAt: 'desc' };
-  }
+  const orderBy =
+    sort === 'name_asc'
+      ? { name: 'asc' }
+      : sort === 'name_desc'
+        ? { name: 'desc' }
+        : sort === 'code_asc'
+          ? { code: 'asc' }
+          : { createdAt: 'desc' };
 
   const [locations, total] = await Promise.all([
     prisma.locations.findMany({
