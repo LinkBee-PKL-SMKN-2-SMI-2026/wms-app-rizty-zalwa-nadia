@@ -44,7 +44,7 @@ export const createCategory = catchAsync(async (req, res) => {
 });
 
 //GET ALL
-export const getAllProducts = catchAsync(async (req, res) => {
+export const getAllCategories = catchAsync(async (req, res) => {
   const {
     page = 1,
     limit = 10,
