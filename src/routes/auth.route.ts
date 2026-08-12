@@ -9,5 +9,7 @@ const router = Router();
 router.post('/register', validate(RegisterSchema), register);
 router.post('/login', validate(LoginSchema), login);
 router.get('/me', authenticate, getMe);
+router.post('/', authenticate, authorize('ADMIN'), validate(CreateCategorySchema), createCategory);
+router.get('/', authenticate, getAllCategories);
 
 export default router;
