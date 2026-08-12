@@ -35,6 +35,6 @@ export const UpdateLocationSchema = z.object({
 
 export const DeleteLocationSchema = z.object({
   params: z.object({
-    id: z.string().uid(`ID lokasi tidak valid`),
+    id: z.string().uuid(`ID lokasi tidak valid`),
   }),
 });
