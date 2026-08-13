@@ -22,35 +22,13 @@ import {
 
 const router = Router();
 
-router.post(
-  '/',
-  authenticate,
-  authorize('ADMIN'),
-  validate(CreateProductSchema),
-  createProduct,
-);
+router.post('/', authenticate, authorize('ADMIN'), validate(CreateProductSchema), createProduct);
 
-router.get(
-  '/',
-  authenticate,
-  validate(GetAllProductSchema),
-  getAllProducts,
-);
+router.get('/', authenticate, validate(GetAllProductSchema), getAllProducts);
 
-router.get(
-  '/:id',
-  authenticate,
-  validate(GetProductByIdSchema),
-  getProductById,
-);
+router.get('/:id', authenticate, validate(GetProductByIdSchema), getProductById);
 
-router.put(
-  '/:id',
-  authenticate,
-  authorize('ADMIN'),
-  validate(UpdateProductSchema),
-  updateProduct,
-);
+router.put('/:id', authenticate, authorize('ADMIN'), validate(UpdateProductSchema), updateProduct);
 
 router.delete(
   '/:id',
