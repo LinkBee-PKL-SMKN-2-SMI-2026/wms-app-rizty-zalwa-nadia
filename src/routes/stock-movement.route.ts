@@ -17,25 +17,10 @@ import {
 
 const router = Router();
 
-router.post(
-  '/inbound',
-  authenticate,
-  validate(CreateInboundSchema),
-  createInbound,
-);
+router.post('/inbound', authenticate, validate(CreateInboundSchema), createInbound);
 
-router.post(
-  '/outbound',
-  authenticate,
-  validate(CreateOutboundSchema),
-  createOutbound,
-);
+router.post('/outbound', authenticate, validate(CreateOutboundSchema), createOutbound);
 
-router.get(
-  '/history',
-  authenticate,
-  validate(GetMovementHistorySchema),
-  getMovementHistory,
-);
+router.get('/history', authenticate, validate(GetMovementHistorySchema), getMovementHistory);
 
 export default router;

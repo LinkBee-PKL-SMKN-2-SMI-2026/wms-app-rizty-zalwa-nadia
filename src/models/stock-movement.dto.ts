@@ -9,5 +9,4 @@ export type CreateInboundRequest = z.infer<typeof CreateInboundSchema>['body'];
 
 export type CreateOutboundRequest = z.infer<typeof CreateOutboundSchema>['body'];
 
-export type GetMovementHistoryRequest =
-  z.infer<typeof GetMovementHistorySchema>['query'];
+export type GetMovementHistoryRequest = z.infer<typeof GetMovementHistorySchema>['query'];
