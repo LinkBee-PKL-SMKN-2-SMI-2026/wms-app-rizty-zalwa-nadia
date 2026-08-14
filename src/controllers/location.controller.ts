@@ -20,7 +20,7 @@ const prisma = new PrismaClient({ adapter });
 
 //CRETAE
 export const createLocation = catchAsync(async (req, res) => {
-  const { name, code, description } = req.body as CreateLocationRequest;
+  const { name, code } = req.body as CreateLocationRequest;
 
   const existingName = await prisma.locations.findUnique({
     where: { name },
