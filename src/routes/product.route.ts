@@ -27,6 +27,8 @@ router.post('/', authenticate, authorize('ADMIN'), validate(CreateProductSchema)
 
 router.get('/', authenticate, validate(GetAllProductSchema), getAllProducts);
 
+router.get('/:id/stock', authenticate, getProductStock);
+
 router.get('/:id', authenticate, validate(GetProductByIdSchema), getProductById);
 
 router.put('/:id', authenticate, authorize('ADMIN'), validate(UpdateProductSchema), updateProduct);
