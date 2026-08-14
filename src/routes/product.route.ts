@@ -10,6 +10,7 @@ import {
   GetProductByIdSchema,
   UpdateProductSchema,
   DeleteProductSchema,
+  getProductStock,
 } from '../validations/product.validation';
 
 import {
