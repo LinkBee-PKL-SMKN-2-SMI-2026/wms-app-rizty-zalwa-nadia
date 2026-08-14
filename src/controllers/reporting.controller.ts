@@ -24,69 +24,47 @@ export const getSummary = catchAsync(async (req, res) => {
   } else {
     const today = new Date();
 
-    startOfDay = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-      0,
-      0,
-      0,
-      0,
-    );
+    startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
 
-    endOfDay = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-      23,
-      59,
-      59,
-      999,
-    );
+    endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
   }
 
-  const [
-    totalProducts,
-    totalCategories,
-    totalLocations,
-    totalUsers,
-    inboundToday,
-    outboundToday,
-  ] = await Promise.all([
-    prisma.products.count(),
+  const [totalProducts, totalCategories, totalLocations, totalUsers, inboundToday, outboundToday] =
+    await Promise.all([
+      prisma.products.count(),
 
-    prisma.categories.count(),
+      prisma.categories.count(),
 
-    prisma.locations.count(),
+      prisma.locations.count(),
 
-    prisma.users.count(),
+      prisma.users.count(),
 
-    prisma.stock_Movements.aggregate({
-      where: {
-        type: 'INBOUND',
-        createdAt: {
-          gte: startOfDay,
-          lte: endOfDay,
+      prisma.stock_Movements.aggregate({
+        where: {
+          type: 'INBOUND',
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
         },
-      },
-      _sum: {
-        quantity: true,
-      },
-    }),
-
-    prisma.stock_Movements.aggregate({
-      where: {
-        type: 'OUTBOUND',
-        createdAt: {
-          gte: startOfDay,
-          lte: endOfDay,
+        _sum: {
+          quantity: true,
         },
-      },
-      _sum: {
-        quantity: true,
-      },
-    }),
-  ]);
+      }),
+
+      prisma.stock_Movements.aggregate({
+        where: {
+          type: 'OUTBOUND',
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+        _sum: {
+          quantity: true,
+        },
+      }),
+    ]);
 
   const data: SummaryResponse = {
     totalProducts,
