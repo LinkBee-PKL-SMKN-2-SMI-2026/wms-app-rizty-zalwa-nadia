@@ -251,3 +251,45 @@ export const deleteProduct = catchAsync(async (req, res) => {
     message: 'Produk berhasil dihapus',
   });
 });
+
+export const getProductStock = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const product = await prisma.products.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      sku: true,
+      stock: true,
+      minimumStock: true,
+    },
+  });
+
+  if (!product) {
+    throw new AppError('Produk tidak ditemukan', 404);
+  }
+
+  let status: 'safe' | 'low' | 'out';
+
+  if (product.stock === 0) {
+    status = 'out';
+  } else if (product.stock <= product.minimumStock) {
+    status = 'low';
+  } else {
+    status = 'safe';
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Informasi stok produk berhasil diambil',
+    data: {
+      productId: product.id,
+      name: product.name,
+      sku: product.sku,
+      currentStock: product.stock,
+      minimumStock: product.minimumStock,
+      status,
+    },
+  });
+});
