@@ -10,7 +10,6 @@ import {
   GetProductByIdSchema,
   UpdateProductSchema,
   DeleteProductSchema,
-  getProductStock,
 } from '../validations/product.validation';
 
 import {
@@ -19,6 +18,7 @@ import {
   getProductById,
   updateProduct,
   deleteProduct,
+  getProductStock,
 } from '../controllers/product.controller';
 
 const router = Router();
