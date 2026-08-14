@@ -42,7 +42,6 @@ export const createLocation = catchAsync(async (req, res) => {
     data: {
       name,
       code,
-      description,
     },
   });
 
@@ -139,7 +138,7 @@ export const getLocationById = catchAsync(async (req, res) => {
 //UPDA3E
 export const updateLocation = catchAsync(async (req, res) => {
   const { id } = req.params as UpdateLocationParams;
-  const { name, code, description, isActive } = req.body as UpdateLocationRequest;
+  const { name, code, isActive } = req.body as UpdateLocationRequest;
 
   const location = await prisma.locations.findUnique({
     where: { id },
@@ -176,7 +175,6 @@ export const updateLocation = catchAsync(async (req, res) => {
     data: {
       name,
       code,
-      description,
       isActive,
     },
   });
