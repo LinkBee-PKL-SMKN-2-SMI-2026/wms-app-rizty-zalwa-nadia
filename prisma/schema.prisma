@@ -8,17 +8,18 @@ datasource db {
 }
 
 model Users {
-  id             String            @id @default(uuid())
-  name           String
-  email          String            @unique
-  password       String
-  role           Role              @default(STAFF)
-  isActive       Boolean           @default(true)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  refreshToken   String?
-  activityLogs   Activity_Logs[]
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  password     String
+  role         Role     @default(STAFF)
+  isActive     Boolean  @default(true)
+  refreshToken String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
   stockMovements Stock_Movements[]
+  activityLogs   Activity_Logs[]
 }
 
 model Categories {
