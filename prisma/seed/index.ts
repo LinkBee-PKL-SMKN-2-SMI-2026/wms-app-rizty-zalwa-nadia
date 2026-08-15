@@ -1,23 +1,29 @@
 import 'dotenv/config';
 import { PrismaClient } from '../../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { genSaltSync, hashSync } from 'bcrypt';
+import bcrypt from 'bcrypt';
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL!,
+});
+
 const prisma = new PrismaClient({ adapter });
-const salt = genSaltSync(10);
 
 async function main() {
   console.log('🌱 Mulai melakukan seeding data...');
 
-  //USER ADMIN
+  // USER ADMIN
+  const passwordHash = await bcrypt.hash('admin123', 10);
+
   const admin = await prisma.users.upsert({
-    where: { email: 'admin@wms.com' },
+    where: {
+      email: 'admin@wms.com',
+    },
     update: {},
     create: {
       name: 'Administrator',
       email: 'admin@wms.com',
-      password: hashSync('admin123', salt),
+      password: passwordHash,
       role: 'ADMIN',
       isActive: true,
     },
@@ -25,7 +31,9 @@ async function main() {
 
   // CATEGORIES
   const elektronik = await prisma.categories.upsert({
-    where: { name: 'Elektronik' },
+    where: {
+      name: 'Elektronik',
+    },
     update: {},
     create: {
       name: 'Elektronik',
@@ -34,7 +42,9 @@ async function main() {
   });
 
   const furniture = await prisma.categories.upsert({
-    where: { name: 'Furniture' },
+    where: {
+      name: 'Furniture',
+    },
     update: {},
     create: {
       name: 'Furniture',
@@ -43,7 +53,9 @@ async function main() {
   });
 
   const atk = await prisma.categories.upsert({
-    where: { name: 'ATK' },
+    where: {
+      name: 'ATK',
+    },
     update: {},
     create: {
       name: 'ATK',
@@ -53,7 +65,9 @@ async function main() {
 
   // LOCATIONS
   const rakA1 = await prisma.locations.upsert({
-    where: { code: 'A1' },
+    where: {
+      code: 'A1',
+    },
     update: {},
     create: {
       name: 'Rak A1',
@@ -62,7 +76,9 @@ async function main() {
   });
 
   const rakA2 = await prisma.locations.upsert({
-    where: { code: 'A2' },
+    where: {
+      code: 'A2',
+    },
     update: {},
     create: {
       name: 'Rak A2',
@@ -71,7 +87,9 @@ async function main() {
   });
 
   const gudangB1 = await prisma.locations.upsert({
-    where: { code: 'B1' },
+    where: {
+      code: 'B1',
+    },
     update: {},
     create: {
       name: 'Gudang B1',
@@ -133,7 +151,7 @@ async function main() {
 
   console.log('✅ Seed berhasil!');
   console.log({
-    admin,
+    admin: admin.email,
     categories: 3,
     locations: 3,
     products: 5,

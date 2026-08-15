@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -29,7 +32,8 @@ model Categories {
   isActive    Boolean    @default(true)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  products    Products[]
+
+  products Products[]
 }
 
 model Locations {
@@ -39,23 +43,25 @@ model Locations {
   isActive  Boolean    @default(true)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  products  Products[]
+
+  products Products[]
 }
 
 model Products {
-  id             String            @id @default(uuid())
-  name           String
-  sku            String            @unique
-  description    String?
-  stock          Int               @default(0)
-  minimumStock   Int               @default(10)
-  isActive       Boolean           @default(true)
-  categoryId     String
-  locationId     String
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  category       Categories        @relation(fields: [categoryId], references: [id])
-  location       Locations         @relation(fields: [locationId], references: [id])
+  id           String   @id @default(uuid())
+  name         String
+  sku          String   @unique
+  description  String?
+  stock        Int      @default(0)
+  minimumStock Int      @default(10)
+  isActive     Boolean  @default(true)
+  categoryId   String
+  locationId   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category       Categories        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  location       Locations         @relation(fields: [locationId], references: [id], onDelete: Restrict)
   stockMovements Stock_Movements[]
 }
 
@@ -67,8 +73,9 @@ model Stock_Movements {
   userId    String
   productId String
   createdAt DateTime     @default(now())
-  product   Products     @relation(fields: [productId], references: [id])
-  user      Users        @relation(fields: [userId], references: [id])
+
+  user    Users    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  product Products @relation(fields: [productId], references: [id], onDelete: Restrict)
 }
 
 model Activity_Logs {
@@ -79,7 +86,8 @@ model Activity_Logs {
   detail    Json?
   userId    String
   createdAt DateTime @default(now())
-  user      Users    @relation(fields: [userId], references: [id])
+
+  user Users @relation(fields: [userId], references: [id], onDelete: Restrict)
 }
 
 enum Role {

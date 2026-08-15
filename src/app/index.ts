@@ -1,4 +1,3 @@
-// Import Used Package
 import express from 'express';
 import { logger } from '../utils/logger';
 import pinoHttp from 'pino-http';
@@ -11,8 +10,9 @@ const app = express();
 const PORT = process.env.PORT;
 
 // Register Middleware
-app.use(express.json()); // Default: Jangan dihapus
+app.use(express.json());
 app.use(cors());
+
 app.use(
   (
     err: unknown,
@@ -20,7 +20,6 @@ app.use(
     res: express.Response,
     next: express.NextFunction,
   ): void => {
-    // Cek apakah errornya adalah SyntaxError dari body-parser (express.json)
     if (err instanceof SyntaxError && 'status' in err && err.status === 400 && 'body' in err) {
       logger.warn(
         { event: 'JSON_PARSE_ERROR', error: err.message },
@@ -30,22 +29,22 @@ app.use(
       res.status(400).json({
         success: false,
         message: 'Format data JSON tidak valid.',
-        error: err.message, // Opsional: kasih tahu error spesifiknya apa
+        error: err.message,
       });
-      return; // Berhenti di sini, jangan lanjut ke route
+      return;
     }
 
-    // Kalau errornya bukan masalah JSON, lempar ke errorHandler bawaanmu
     next(err);
   },
 );
-app.use(pinoHttp({ logger })); // Default: Jangan dihapus
+
+app.use(pinoHttp({ logger }));
 
 // Register Routes
 app.use('/api', routes);
 
 // Middleware Handle Error
-app.use(errorHandler); // Default: Jangan dihapus
+app.use(errorHandler);
 
 const server = app.listen(PORT, () => {
   const address = server.address();
@@ -56,9 +55,10 @@ const server = app.listen(PORT, () => {
     `Server berjalan di http://localhost:${actualPort}`,
   );
 });
+
 server.on('error', (error: NodeJS.ErrnoException) => {
   if (error.code === 'EADDRINUSE') {
     logger.fatal({ event: 'PORT_CLASH', port: PORT }, `Port ${PORT} sudah digunakan aplikasi lain`);
-    process.exit(1); // Paksa matiin biar ga jalan diem-diem
+    process.exit(1);
   }
 });
