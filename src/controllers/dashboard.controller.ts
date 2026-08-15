@@ -1,6 +1,7 @@
-import { catchAsync } from '../utils/catchAsync';
+import { Request, Response } from 'express';
 import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { startOfDay, subDays } from 'date-fns';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -9,210 +10,6 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter });
 
 // GET DASHBOARD STATS
-export const getDashboardStats = catchAsync(async (req, res) => {
-  const period = req.query.period || 'week';
-
-  const now = new Date();
-
-  let dateFilter: Date;
-
-  switch (period) {
-    case 'today':
-      dateFilter = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        0,
-        0,
-        0,
-        0,
-      );
-      break;
-
-    case 'week':
-      dateFilter = new Date(now);
-      dateFilter.setDate(now.getDate() - 7);
-      break;
-
-    case 'month':
-      dateFilter = new Date(now);
-      dateFilter.setDate(now.getDate() - 30);
-      break;
-
-    default:
-      dateFilter = new Date(now);
-      dateFilter.setDate(now.getDate() - 7);
-      break;
-  }
-
-  // =========================
-  // OVERVIEW
-  // =========================
-
-  const [
-    totalProducts,
-    totalStockResult,
-    lowStockCount,
-    outOfStockCount,
-  ] = await Promise.all([
-    prisma.products.count(),
-
-    prisma.products.aggregate({
-      _sum: {
-        stock: true,
-      },
-    }),
-
-    prisma.products.count({
-      where: {
-        stock: {
-          lt: prisma.products.fields.minimumStock,
-        },
-      },
-    }),
-
-    prisma.products.count({
-      where: {
-        stock: 0,
-      },
-    }),
-  ]);
-
-  // =========================
-  // MOVEMENTS
-  // =========================
-
-  const [inboundResult, outboundResult] = await Promise.all([
-    prisma.stock_Movements.aggregate({
-      where: {
-        type: 'INBOUND',
-        createdAt: {
-          gte: dateFilter,
-          lte: now,
-        },
-      },
-      _sum: {
-        quantity: true,
-      },
-    }),
-
-    prisma.stock_Movements.aggregate({
-      where: {
-        type: 'OUTBOUND',
-        createdAt: {
-          gte: dateFilter,
-          lte: now,
-        },
-      },
-      _sum: {
-        quantity: true,
-      },
-    }),
-  ]);
-
-  const totalInbound = inboundResult._sum.quantity ?? 0;
-  const totalOutbound = outboundResult._sum.quantity ?? 0;
-  const netMovement = totalInbound - totalOutbound;
-
-  // =========================
-  // TOP PRODUCTS
-  // =========================
-
-  const topProductMovements = await prisma.stock_Movements.groupBy({
-    by: ['productId'],
-    where: {
-      createdAt: {
-        gte: dateFilter,
-        lte: now,
-      },
-    },
-    _sum: {
-      quantity: true,
-    },
-    orderBy: {
-      _sum: {
-        quantity: 'desc',
-      },
-    },
-    take: 5,
-  });
-
-  const productIds = topProductMovements.map(
-    (movement) => movement.productId,
-  );
-
-  const products = await prisma.products.findMany({
-    where: {
-      id: {
-        in: productIds,
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      sku: true,
-    },
-  });
-
-  const topProducts = topProductMovements.map((movement) => {
-    const product = products.find(
-      (item) => item.id === movement.productId,
-    );
-
-    return {
-      id: product?.id ?? movement.productId,
-      name: product?.name ?? 'Unknown Product',
-      sku: product?.sku ?? '-',
-      totalMovement: movement._sum.quantity ?? 0,
-    };
-  });
-
-  // =========================
-  // CATEGORY DISTRIBUTION
-  // =========================
-
-  const categoryDistributionRaw = await prisma.products.groupBy({
-    by: ['categoryId'],
-    _count: {
-      id: true,
-    },
-    _sum: {
-      stock: true,
-    },
-  });
-
-  const categoryIds = categoryDistributionRaw.map(
-    (category) => category.categoryId,
-  );
-
-  const categories = await prisma.categories.findMany({
-    where: {
-      id: {
-        in: categoryIds,
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-    },
-  });
-
-  const categoryDistribution = categoryDistributionRaw.map((category) => {
-    const categoryData = categories.find(
-      (item) => item.id === category.categoryId,
-    );
-
-    return {
-      categoryName: categoryData?.name ?? 'Unknown Category',
-      productCount: category._count.id,
-      totalStock: category._sum.stock ?? 0,
-    };
-  });
-
-  // =========================
-  // RESPONSE
-  // =========================
-
 export const getDashboardStats = async (req: Request, res: Response): Promise<Response> => {
   const period = (req.query.period as 'today' | 'week' | 'month') || 'week';
 
@@ -388,6 +185,7 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<Re
   });
 };
 
+// GET RECENT MOVEMENTS
 export const getRecentMovements = async (req: Request, res: Response): Promise<Response> => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
