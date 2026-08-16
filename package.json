@@ -8,7 +8,7 @@
     "start": "bun ./src/app/index.ts",
     "build": "bun build ./src/app/index.ts --outdir ./dist",
     "build:exe": "bun build ./src/app/index.ts --compile --outfile ./bin/warehouse-management-system",
-    "lint": "eslint \"src/**/*.ts\"",
+    "lint": "NODE_PATH=/public/wms-app-rizty-zalwa-nadia/node_modules eslint \"src/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
