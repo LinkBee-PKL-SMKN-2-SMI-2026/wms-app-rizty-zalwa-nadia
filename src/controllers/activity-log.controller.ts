@@ -14,7 +14,7 @@ export const getActivityLogs = catchAsync(
       entity,
       startDate,
       endDate,
-    } = req.query as GetActivityLogsQuery;
+    } = req.query as unknown as GetActivityLogsQuery;
 
     const where: Record<string, unknown> = {};
 

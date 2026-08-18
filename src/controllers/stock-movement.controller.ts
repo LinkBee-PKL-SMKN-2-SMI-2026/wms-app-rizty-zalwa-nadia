@@ -2,12 +2,13 @@ import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/AppError';
 import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-
 import {
   type CreateInboundRequest,
   type CreateOutboundRequest,
   type GetMovementHistoryRequest,
 } from '../models/stock-movement.dto';
+import type { AuthRequest } from '../models/auth.model';
+import { logActivity } from '../services/activity-log.service';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -15,12 +16,12 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-export const createInbound = catchAsync(async (req, res) => {
+export const createInbound = catchAsync(async (req: AuthRequest, res) => {
   const { productId, quantity, notes } = req.body as CreateInboundRequest;
 
   const userId = req.user!.userId;
 
-  // c3k product ada/ga
+  // Cek product ada/tidak
   const product = await prisma.products.findUnique({
     where: { id: productId },
   });
@@ -30,7 +31,7 @@ export const createInbound = catchAsync(async (req, res) => {
   }
 
   const result = await prisma.$transaction(async (tx) => {
-    //Update stok
+    // Update stok
     const updatedProduct = await tx.products.update({
       where: { id: productId },
       data: {
@@ -57,6 +58,18 @@ export const createInbound = catchAsync(async (req, res) => {
     };
   });
 
+  await logActivity({
+    userId,
+    action: 'CREATE',
+    entity: 'Stock_Movements',
+    entityId: result.movement.id,
+    detail: {
+      type: 'INBOUND',
+      productId,
+      quantity,
+    },
+  });
+
   res.status(201).json({
     success: true,
     message: 'Stock inbound berhasil dicatat',
@@ -64,7 +77,7 @@ export const createInbound = catchAsync(async (req, res) => {
   });
 });
 
-export const createOutbound = catchAsync(async (req, res) => {
+export const createOutbound = catchAsync(async (req: AuthRequest, res) => {
   const { productId, quantity, notes } = req.body as CreateOutboundRequest;
 
   const userId = req.user!.userId;
@@ -77,7 +90,7 @@ export const createOutbound = catchAsync(async (req, res) => {
     throw new AppError('Produk tidak ditemukan', 404);
   }
 
-  // cek stok
+  // Cek stok
   if (product.stock < quantity) {
     throw new AppError('Stok tidak mencukupi', 400);
   }
@@ -109,6 +122,18 @@ export const createOutbound = catchAsync(async (req, res) => {
     };
   });
 
+  await logActivity({
+    userId,
+    action: 'CREATE',
+    entity: 'Stock_Movements',
+    entityId: result.movement.id,
+    detail: {
+      type: 'OUTBOUND',
+      productId,
+      quantity,
+    },
+  });
+
   res.status(201).json({
     success: true,
     message: 'Stock outbound berhasil dicatat',
@@ -130,9 +155,7 @@ export const getMovementHistory = catchAsync(async (req, res) => {
 
   const where = {
     ...(productId ? { productId } : {}),
-
     ...(type ? { type } : {}),
-
     ...(startDate || endDate
       ? {
           createdAt: {

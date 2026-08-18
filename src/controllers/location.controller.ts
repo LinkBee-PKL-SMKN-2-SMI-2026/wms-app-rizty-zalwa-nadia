@@ -1,8 +1,8 @@
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/AppError';
 import { PrismaClient } from '../generated/prisma/client';
+import type { Prisma } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-
 import {
   type CreateLocationRequest,
   type GetAllLocationRequest,
@@ -11,6 +11,8 @@ import {
   type UpdateLocationParams,
   type DeleteLocationRequest,
 } from '../models/location.dto';
+import type { AuthRequest } from '../models/auth.model';
+import { logActivity } from '../services/activity-log.service';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -18,9 +20,10 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-//CRETAE
-export const createLocation = catchAsync(async (req, res) => {
+// CREATE
+export const createLocation = catchAsync(async (req: AuthRequest, res) => {
   const { name, code } = req.body as CreateLocationRequest;
+  const userId = req.user?.userId;
 
   const existingName = await prisma.locations.findUnique({
     where: { name },
@@ -45,6 +48,19 @@ export const createLocation = catchAsync(async (req, res) => {
     },
   });
 
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'CREATE',
+      entity: 'Locations',
+      entityId: location.id,
+      detail: {
+        name,
+        code,
+      },
+    });
+  }
+
   res.status(201).json({
     success: true,
     message: 'Lokasi berhasil dibuat',
@@ -52,7 +68,7 @@ export const createLocation = catchAsync(async (req, res) => {
   });
 });
 
-//GET ALL
+// GET ALL
 export const getAllLocations = catchAsync(async (req, res) => {
   const { page = 1, limit = 10, search, sort } = req.query as unknown as GetAllLocationRequest;
 
@@ -77,7 +93,7 @@ export const getAllLocations = catchAsync(async (req, res) => {
       }
     : {};
 
-  const orderBy =
+  const orderBy: Prisma.LocationsOrderByWithRelationInput =
     sort === 'name_asc'
       ? { name: 'asc' }
       : sort === 'name_desc'
@@ -109,7 +125,7 @@ export const getAllLocations = catchAsync(async (req, res) => {
   });
 });
 
-//GET BY ID
+// GET BY ID
 export const getLocationById = catchAsync(async (req, res) => {
   const { id } = req.params as GetLocationByIdRequest;
 
@@ -135,10 +151,11 @@ export const getLocationById = catchAsync(async (req, res) => {
   });
 });
 
-//UPDA3E
-export const updateLocation = catchAsync(async (req, res) => {
+// UPDATE
+export const updateLocation = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params as UpdateLocationParams;
   const { name, code, isActive } = req.body as UpdateLocationRequest;
+  const userId = req.user?.userId;
 
   const location = await prisma.locations.findUnique({
     where: { id },
@@ -179,6 +196,22 @@ export const updateLocation = catchAsync(async (req, res) => {
     },
   });
 
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'UPDATE',
+      entity: 'Locations',
+      entityId: id,
+      detail: {
+        changes: {
+          name,
+          code,
+          isActive,
+        },
+      },
+    });
+  }
+
   res.status(200).json({
     success: true,
     message: 'Lokasi berhasil diperbarui',
@@ -186,9 +219,10 @@ export const updateLocation = catchAsync(async (req, res) => {
   });
 });
 
-//DELETE
-export const deleteLocation = catchAsync(async (req, res) => {
+// DELETE
+export const deleteLocation = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params as DeleteLocationRequest;
+  const userId = req.user?.userId;
 
   const location = await prisma.locations.findUnique({
     where: { id },
@@ -211,6 +245,15 @@ export const deleteLocation = catchAsync(async (req, res) => {
   await prisma.locations.delete({
     where: { id },
   });
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'DELETE',
+      entity: 'Locations',
+      entityId: id,
+    });
+  }
 
   res.status(200).json({
     success: true,

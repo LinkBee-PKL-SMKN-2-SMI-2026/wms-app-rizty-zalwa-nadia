@@ -1,8 +1,8 @@
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/AppError';
 import { PrismaClient } from '../generated/prisma/client';
+import type { Prisma } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-
 import {
   type CreateProductRequest,
   type GetAllProductRequest,
@@ -11,6 +11,8 @@ import {
   type UpdateProductParams,
   type DeleteProductRequest,
 } from '../models/product.dto';
+import type { AuthRequest } from '../models/auth.model';
+import { logActivity } from '../services/activity-log.service';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -18,9 +20,12 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-export const createProduct = catchAsync(async (req, res) => {
+// CREATE
+export const createProduct = catchAsync(async (req: AuthRequest, res) => {
   const { name, sku, description, stock, minimumStock, categoryId, locationId } =
     req.body as CreateProductRequest;
+
+  const userId = req.user?.userId;
 
   const existingSku = await prisma.products.findUnique({
     where: { sku },
@@ -58,6 +63,19 @@ export const createProduct = catchAsync(async (req, res) => {
     },
   });
 
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'CREATE',
+      entity: 'Products',
+      entityId: product.id,
+      detail: {
+        name,
+        sku,
+      },
+    });
+  }
+
   res.status(201).json({
     success: true,
     message: 'Produk berhasil dibuat',
@@ -65,6 +83,7 @@ export const createProduct = catchAsync(async (req, res) => {
   });
 });
 
+// GET ALL
 export const getAllProducts = catchAsync(async (req, res) => {
   const {
     page = 1,
@@ -100,7 +119,7 @@ export const getAllProducts = catchAsync(async (req, res) => {
     ...(locationId ? { locationId } : {}),
   };
 
-  const orderBy =
+  const orderBy: Prisma.ProductsOrderByWithRelationInput =
     sort === 'name_asc'
       ? { name: 'asc' }
       : sort === 'name_desc'
@@ -138,6 +157,7 @@ export const getAllProducts = catchAsync(async (req, res) => {
   });
 });
 
+// GET BY ID
 export const getProductById = catchAsync(async (req, res) => {
   const { id } = req.params as GetProductByIdRequest;
 
@@ -160,11 +180,13 @@ export const getProductById = catchAsync(async (req, res) => {
   });
 });
 
-export const updateProduct = catchAsync(async (req, res) => {
+// UPDATE
+export const updateProduct = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params as UpdateProductParams;
-
   const { name, sku, description, minimumStock, categoryId, locationId, isActive } =
     req.body as UpdateProductRequest;
+
+  const userId = req.user?.userId;
 
   const product = await prisma.products.findUnique({
     where: { id },
@@ -214,6 +236,26 @@ export const updateProduct = catchAsync(async (req, res) => {
     },
   });
 
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'UPDATE',
+      entity: 'Products',
+      entityId: id,
+      detail: {
+        changes: {
+          name,
+          sku,
+          description,
+          minimumStock,
+          categoryId,
+          locationId,
+          isActive,
+        },
+      },
+    });
+  }
+
   res.status(200).json({
     success: true,
     message: 'Produk berhasil diperbarui',
@@ -221,8 +263,10 @@ export const updateProduct = catchAsync(async (req, res) => {
   });
 });
 
-export const deleteProduct = catchAsync(async (req, res) => {
+// DELETE
+export const deleteProduct = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params as DeleteProductRequest;
+  const userId = req.user?.userId;
 
   const product = await prisma.products.findUnique({
     where: { id },
@@ -246,14 +290,24 @@ export const deleteProduct = catchAsync(async (req, res) => {
     where: { id },
   });
 
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'DELETE',
+      entity: 'Products',
+      entityId: id,
+    });
+  }
+
   res.status(200).json({
     success: true,
     message: 'Produk berhasil dihapus',
   });
 });
 
+// GET PRODUCT STOCK
 export const getProductStock = catchAsync(async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params as { id: string };
 
   const product = await prisma.products.findUnique({
     where: { id },

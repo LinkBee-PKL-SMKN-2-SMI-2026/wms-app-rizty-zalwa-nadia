@@ -10,6 +10,8 @@ import {
   type UpdateCategoryParams,
   type DeleteCategoryRequest,
 } from '../models/category.dto';
+import type { AuthRequest } from '../models/auth.model';
+import { logActivity } from '../services/activity-log.service';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -17,9 +19,10 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-//CREATE
-export const createCategory = catchAsync(async (req, res) => {
+// CREATE
+export const createCategory = catchAsync(async (req: AuthRequest, res) => {
   const { name, description } = req.body as CreateCategoryRequest;
+  const userId = req.user?.userId;
 
   const existingCategory = await prisma.categories.findUnique({
     where: { name },
@@ -36,6 +39,18 @@ export const createCategory = catchAsync(async (req, res) => {
     },
   });
 
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'CREATE',
+      entity: 'Categories',
+      entityId: category.id,
+      detail: {
+        name,
+      },
+    });
+  }
+
   res.status(201).json({
     success: true,
     message: 'Kategori berhasil dibuat',
@@ -43,7 +58,7 @@ export const createCategory = catchAsync(async (req, res) => {
   });
 });
 
-//GET ALL
+// GET ALL
 export const getAllCategories = catchAsync(async (req, res) => {
   const { page = 1, limit = 10, search, sort } = req.query as unknown as GetAllCategoryRequest;
 
@@ -60,7 +75,10 @@ export const getAllCategories = catchAsync(async (req, res) => {
       : {}),
   };
 
-  const orderBy =
+  const orderBy: {
+    name?: 'asc' | 'desc';
+    createdAt?: 'asc' | 'desc';
+  } =
     sort === 'name_asc'
       ? { name: 'asc' }
       : sort === 'name_desc'
@@ -117,10 +135,11 @@ export const getCategoryById = catchAsync(async (req, res) => {
   });
 });
 
-//UPDTE
-export const updateCategory = catchAsync(async (req, res) => {
+// UPDATE
+export const updateCategory = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params as UpdateCategoryParams;
   const { name, description, isActive } = req.body as UpdateCategoryRequest;
+  const userId = req.user?.userId;
 
   const category = await prisma.categories.findUnique({
     where: { id },
@@ -152,6 +171,22 @@ export const updateCategory = catchAsync(async (req, res) => {
     },
   });
 
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'UPDATE',
+      entity: 'Categories',
+      entityId: id,
+      detail: {
+        changes: {
+          name,
+          description,
+          isActive,
+        },
+      },
+    });
+  }
+
   res.status(200).json({
     success: true,
     message: 'Kategori berhasil diperbarui',
@@ -159,9 +194,10 @@ export const updateCategory = catchAsync(async (req, res) => {
   });
 });
 
-//DELETE
-export const deleteCategory = catchAsync(async (req, res) => {
+// DELETE
+export const deleteCategory = catchAsync(async (req: AuthRequest, res) => {
   const { id } = req.params as DeleteCategoryRequest;
+  const userId = req.user?.userId;
 
   const category = await prisma.categories.findUnique({
     where: { id },
@@ -184,6 +220,15 @@ export const deleteCategory = catchAsync(async (req, res) => {
   await prisma.categories.delete({
     where: { id },
   });
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'DELETE',
+      entity: 'Categories',
+      entityId: id,
+    });
+  }
 
   res.status(200).json({
     success: true,
