@@ -18,6 +18,7 @@ import {
   getProductById,
   updateProduct,
   deleteProduct,
+  getProductStock,
 } from '../controllers/product.controller';
 
 const router = Router();
@@ -25,6 +26,8 @@ const router = Router();
 router.post('/', authenticate, authorize('ADMIN'), validate(CreateProductSchema), createProduct);
 
 router.get('/', authenticate, validate(GetAllProductSchema), getAllProducts);
+
+router.get('/:id/stock', authenticate, getProductStock);
 
 router.get('/:id', authenticate, validate(GetProductByIdSchema), getProductById);
 
