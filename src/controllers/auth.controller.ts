@@ -14,7 +14,7 @@ const prisma = new PrismaClient({ adapter });
 export const register = catchAsync(async (req, res) => {
   const { name, email, password } = req.body as RegisterRequest;
 
-  const existingUser = await prisma.users.findUnique({ where: { email } });
+  const existingUser = await prisma.users.findUnique({ where: { email: email } });
   if (existingUser) {
     throw new AppError(`Email ${email} telah digunakan`, 400);
   }
@@ -37,7 +37,7 @@ export const login = catchAsync(async (req, res) => {
   //qmbil data frm req body
   const { email, password } = req.body as LoginRequest;
 
-  const user = await prisma.users.findUnique({ where: { email } });
+  const user = await prisma.users.findUnique({ where: { email: email } });
   if (!user) {
     throw new AppError('Email atau password salah', 401);
   }
