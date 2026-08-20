@@ -34,9 +34,6 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<Re
     await Promise.all([
       // Overview products
       prisma.products.findMany({
-        where: {
-          isActive: true,
-        },
         select: {
           id: true,
           stock: true,
