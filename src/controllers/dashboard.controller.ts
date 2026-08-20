@@ -184,7 +184,10 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<Re
 
 // GET RECENT MOVEMENTS
 export const getRecentMovements = async (req: Request, res: Response): Promise<Response> => {
-  const page = Number(req.query.page) || 1;
+  const { page = 1, limit = 10 } = req.query as unknown as {
+    page: number;
+    limit: number;
+  };
   const limit = Number(req.query.limit) || 10;
 
   const skip = (page - 1) * limit;
