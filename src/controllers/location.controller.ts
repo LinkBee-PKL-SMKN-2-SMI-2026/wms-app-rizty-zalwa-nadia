@@ -194,6 +194,24 @@ export const updateLocation = catchAsync(async (req, res) => {
     },
   });
 
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'UPDATE',
+      entity: 'Locations',
+      entityId: id,
+      detail: {
+        changes: {
+          name,
+          code,
+          isActive,
+        },
+      },
+    });
+  }
+
   res.status(200).json({
     success: true,
     message: 'Lokasi berhasil diperbarui',
