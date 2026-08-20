@@ -5,6 +5,12 @@ import type { AuthRequest } from '../models/auth.model';
 import { catchAsync } from '../utils/catchAsync';
 import type { GetActivityLogsQuery } from '../models/activity-log.dto';
 
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL!,
+});
+
+const prisma = new PrismaClient({ adapter });
+
 export const getActivityLogs = catchAsync(
   async (req: AuthRequest, res: Response): Promise<void> => {
     const {
