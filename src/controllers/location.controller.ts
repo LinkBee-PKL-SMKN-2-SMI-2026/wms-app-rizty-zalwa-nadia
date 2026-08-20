@@ -245,6 +245,17 @@ export const deleteLocation = catchAsync(async (req, res) => {
     where: { id },
   });
 
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'DELETE',
+      entity: 'Locations',
+      entityId: id,
+    });
+  }
+
   res.status(200).json({
     success: true,
     message: 'Lokasi berhasil dihapus',
