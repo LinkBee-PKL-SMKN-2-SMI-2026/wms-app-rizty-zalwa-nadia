@@ -110,5 +110,3 @@ export const getMe = catchAsync(async (req: AuthRequest, res) => {
     data: user,
   });
 });
- });
-});
