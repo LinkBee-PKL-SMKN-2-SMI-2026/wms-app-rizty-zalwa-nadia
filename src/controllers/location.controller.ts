@@ -2,7 +2,7 @@ import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/AppError';
 import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-
+import { logActivity } from '../services/activity-log.service';
 import {
   type CreateLocationRequest,
   type GetAllLocationRequest,
@@ -44,6 +44,21 @@ export const createLocation = catchAsync(async (req, res) => {
       code,
     },
   });
+
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'CREATE',
+      entity: 'Locations',
+      entityId: location.id,
+      detail: {
+        name,
+        code,
+      },
+    });
+  }
 
   res.status(201).json({
     success: true,
@@ -215,5 +230,8 @@ export const deleteLocation = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Lokasi berhasil dihapus',
+  });
+});
+asil dihapus',
   });
 });
