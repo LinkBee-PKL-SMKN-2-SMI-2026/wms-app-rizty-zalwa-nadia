@@ -26,6 +26,15 @@ export const register = catchAsync(async (req, res) => {
     data: { name, email, password: hashedPassword },
   });
 
+  if (newUser) {
+    await logActivity({
+      userId: newUser.id,
+      action: 'CREATE',
+      entity: 'Users',
+      entityId: newUser.id,
+    });
+  }
+
   logger.info({ event: 'USER_REGISTERED', email }, `Staf baru terdaftar: ${name}`);
   res.status(201).json({
     success: true,
