@@ -2,6 +2,7 @@ import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/AppError';
 import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { logActivity } from '../services/activity-log.service';
 import {
   type CreateCategoryRequest,
   type GetAllCategoryRequest,
@@ -35,6 +36,18 @@ export const createCategory = catchAsync(async (req, res) => {
       description,
     },
   });
+
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'CREATE',
+      entity: 'Categories',
+      entityId: category.id,
+      detail: { name },
+    });
+  }
 
   res.status(201).json({
     success: true,
