@@ -165,6 +165,24 @@ export const updateCategory = catchAsync(async (req, res) => {
     },
   });
 
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'UPDATE',
+      entity: 'Categories',
+      entityId: id,
+      detail: {
+        changes: {
+          name,
+          description,
+          isActive,
+        },
+      },
+    });
+  }
+
   res.status(200).json({
     success: true,
     message: 'Kategori berhasil diperbarui',
