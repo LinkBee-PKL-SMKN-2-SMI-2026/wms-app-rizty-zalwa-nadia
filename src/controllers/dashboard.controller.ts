@@ -188,7 +188,6 @@ export const getRecentMovements = async (req: Request, res: Response): Promise<R
     page: number;
     limit: number;
   };
-  const limit = Number(req.query.limit) || 10;
 
   const skip = (page - 1) * limit;
 
