@@ -71,6 +71,12 @@ export const login = catchAsync(async (req, res) => {
     data: { refreshToken: refreshToken },
   });
 
+  await logActivity({
+    userId: user.id,
+    action: 'LOGIN',
+    entity: 'Users',
+  });
+
   logger.info({ event: 'USER_LOGIN', email }, 'Staf berhasil login');
   res.status(200).json({
     success: true,
@@ -103,4 +109,6 @@ export const getMe = catchAsync(async (req: AuthRequest, res) => {
     message: 'Data user berhasil diambil',
     data: user,
   });
+});
+ });
 });
