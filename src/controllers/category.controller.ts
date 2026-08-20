@@ -216,6 +216,17 @@ export const deleteCategory = catchAsync(async (req, res) => {
     where: { id },
   });
 
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'DELETE',
+      entity: 'Categories',
+      entityId: id,
+    });
+  }
+
   res.status(200).json({
     success: true,
     message: 'Kategori berhasil dihapus',
