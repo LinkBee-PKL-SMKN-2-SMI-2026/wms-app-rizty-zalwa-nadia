@@ -1,0 +1,1190 @@
+openapi: 3.1.0
+info:
+  title: WMS API - Stock Movements
+  version: 1.0.0
+  description: API untuk mencatat dan melihat pergerakan stok.
+servers:
+  - url: http://localhost:3000/api
+tags:
+  - name: Stock Movements
+    description: Stock inbound, outbound, and history
+    x-displayName: Stock Movements
+  - name: Categories
+    description: Category management endpoints
+    x-displayName: Categories
+  - name: Reports
+    description: Reporting endpoints
+    x-displayName: Reports
+  - name: Dashboard
+    description: Dashboard endpoints
+    x-displayName: Dashboard
+  - name: Activity Logs
+    description: Activity log endpoints
+    x-displayName: Activity Logs
+  - name: Products
+    description: Product management endpoints
+    x-displayName: Products
+  - name: Auth
+    description: Authentication endpoints
+    x-displayName: Auth
+  - name: Locations
+    description: Location management endpoints
+    x-displayName: Locations
+paths:
+  /movements/inbound:
+    post:
+      tags:
+        - Stock Movements
+      summary: Mencatat stock inbound
+      security:
+        - WMS_API_-_Stock_Movements_bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/WMS_API_-_Stock_Movements_CreateMovementRequest
+            example:
+              productId: 550e8400-e29b-41d4-a716-446655440000
+              quantity: 10
+              notes: Barang masuk dari supplier
+      responses:
+        '201':
+          description: Stock inbound berhasil dicatat
+        '400':
+          description: Validasi gagal
+        '401':
+          description: Unauthorized
+        '404':
+          description: Produk tidak ditemukan
+  /movements/outbound:
+    post:
+      tags:
+        - Stock Movements
+      summary: Mencatat stock outbound
+      security:
+        - WMS_API_-_Stock_Movements_bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/WMS_API_-_Stock_Movements_CreateMovementRequest
+            example:
+              productId: 550e8400-e29b-41d4-a716-446655440000
+              quantity: 2
+              notes: Barang keluar untuk pengiriman
+      responses:
+        '201':
+          description: Stock outbound berhasil dicatat
+        '400':
+          description: Validasi gagal atau stok tidak mencukupi
+        '401':
+          description: Unauthorized
+        '404':
+          description: Produk tidak ditemukan
+  /movements/history:
+    get:
+      tags:
+        - Stock Movements
+      summary: Mendapatkan riwayat stock movement
+      security:
+        - WMS_API_-_Stock_Movements_bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: productId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - INBOUND
+              - OUTBOUND
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: History stock movement berhasil diambil
+        '401':
+          description: Unauthorized
+  /categories:
+    post:
+      tags:
+        - Categories
+      summary: Membuat kategori
+      security:
+        - WMS_API_-_Categories_bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WMS_API_-_Categories_CreateCategoryRequest'
+            example:
+              name: Elektronik
+              description: Kategori produk elektronik
+      responses:
+        '201':
+          description: Kategori berhasil dibuat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WMS_API_-_Categories_CategoryResponse'
+        '400':
+          description: Validasi gagal atau nama kategori sudah digunakan
+        '401':
+          description: Unauthorized
+        '403':
+          description: Hanya ADMIN
+    get:
+      tags:
+        - Categories
+      summary: Mendapatkan semua kategori
+      security:
+        - WMS_API_-_Categories_bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - name_asc
+              - name_desc
+              - created_asc
+              - created_desc
+      responses:
+        '200':
+          description: Data kategori berhasil diambil
+        '401':
+          description: Unauthorized
+  /categories/{id}:
+    get:
+      tags:
+        - Categories
+      summary: Mendapatkan kategori berdasarkan ID
+      security:
+        - WMS_API_-_Categories_bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WMS_API_-_Categories_CategoryId'
+      responses:
+        '200':
+          description: Data kategori berhasil diambil
+        '400':
+          description: ID kategori tidak valid
+        '401':
+          description: Unauthorized
+        '404':
+          description: Kategori tidak ditemukan
+    put:
+      tags:
+        - Categories
+      summary: Memperbarui kategori
+      security:
+        - WMS_API_-_Categories_bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WMS_API_-_Categories_CategoryId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WMS_API_-_Categories_UpdateCategoryRequest'
+            example:
+              name: Elektronik Baru
+              description: Kategori elektronik
+              isActive: true
+      responses:
+        '200':
+          description: Kategori berhasil diperbarui
+        '400':
+          description: Validasi gagal atau nama kategori sudah digunakan
+        '401':
+          description: Unauthorized
+        '403':
+          description: Hanya ADMIN
+        '404':
+          description: Kategori tidak ditemukan
+    delete:
+      tags:
+        - Categories
+      summary: Menghapus kategori
+      security:
+        - WMS_API_-_Categories_bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WMS_API_-_Categories_CategoryId'
+      responses:
+        '200':
+          description: Kategori berhasil dihapus
+        '400':
+          description: Kategori masih digunakan oleh produk
+        '401':
+          description: Unauthorized
+        '403':
+          description: Hanya ADMIN
+        '404':
+          description: Kategori tidak ditemukan
+  /reports/summary:
+    get:
+      tags:
+        - Reports
+      summary: Mendapatkan ringkasan warehouse
+      security:
+        - WMS_API_-_Reports_bearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          description: Tanggal laporan dengan format YYYY-MM-DD
+          schema:
+            type: string
+            example: '2026-08-22'
+      responses:
+        '200':
+          description: Summary berhasil diambil
+        '401':
+          description: Unauthorized
+  /reports/low-stock:
+    get:
+      tags:
+        - Reports
+      summary: Mendapatkan produk dengan stok rendah
+      security:
+        - WMS_API_-_Reports_bearerAuth: []
+      parameters:
+        - name: threshold
+          in: query
+          description: Batas stok yang dianggap rendah
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Low stock products berhasil diambil
+        '401':
+          description: Unauthorized
+  /dashboard/stats:
+    get:
+      tags:
+        - Dashboard
+      summary: Mendapatkan statistik dashboard
+      security:
+        - WMS_API_-_Dashboard_bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          description: Periode statistik
+          schema:
+            type: string
+            enum:
+              - today
+              - week
+              - month
+            default: week
+      responses:
+        '200':
+          description: Dashboard stats berhasil diambil
+        '401':
+          description: Unauthorized
+  /dashboard/recent-movements:
+    get:
+      tags:
+        - Dashboard
+      summary: Mendapatkan stock movements terbaru
+      security:
+        - WMS_API_-_Dashboard_bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Recent movements berhasil diambil
+        '401':
+          description: Unauthorized
+  /activity-logs:
+    get:
+      tags:
+        - Activity Logs
+      summary: Mendapatkan activity logs
+      security:
+        - WMS_API_-_Activity_Logs_bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: userId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum:
+              - CREATE
+              - UPDATE
+              - DELETE
+              - LOGIN
+              - LOGOUT
+        - name: entity
+          in: query
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Activity logs berhasil diambil
+        '401':
+          description: Unauthorized
+  /products:
+    post:
+      tags:
+        - Products
+      summary: Membuat produk
+      security:
+        - WMS_API_-_Products_bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WMS_API_-_Products_CreateProductRequest'
+            example:
+              name: Laptop ASUS
+              sku: LAP-ASUS-001
+              description: Laptop untuk kantor
+              stock: 10
+              minimumStock: 3
+              categoryId: 550e8400-e29b-41d4-a716-446655440000
+              locationId: 660e8400-e29b-41d4-a716-446655440000
+      responses:
+        '201':
+          description: Produk berhasil dibuat
+        '400':
+          description: Validasi gagal atau SKU/category/location bermasalah
+        '401':
+          description: Unauthorized
+        '403':
+          description: Hanya ADMIN
+    get:
+      tags:
+        - Products
+      summary: Mendapatkan semua produk
+      security:
+        - WMS_API_-_Products_bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: search
+          in: query
+          description: Mencari berdasarkan nama atau SKU
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - name_asc
+              - name_desc
+              - stock_asc
+              - stock_desc
+              - created_desc
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: locationId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Data produk berhasil diambil
+        '401':
+          description: Unauthorized
+  /products/{id}/stock:
+    get:
+      tags:
+        - Products
+      summary: Mendapatkan informasi stok produk
+      security:
+        - WMS_API_-_Products_bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WMS_API_-_Products_ProductId'
+      responses:
+        '200':
+          description: Informasi stok produk berhasil diambil
+        '401':
+          description: Unauthorized
+        '404':
+          description: Produk tidak ditemukan
+  /products/{id}:
+    get:
+      tags:
+        - Products
+      summary: Mendapatkan produk berdasarkan ID
+      security:
+        - WMS_API_-_Products_bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WMS_API_-_Products_ProductId'
+      responses:
+        '200':
+          description: Data produk berhasil diambil
+        '400':
+          description: ID produk tidak valid
+        '401':
+          description: Unauthorized
+        '404':
+          description: Produk tidak ditemukan
+    put:
+      tags:
+        - Products
+      summary: Memperbarui produk
+      security:
+        - WMS_API_-_Products_bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WMS_API_-_Products_ProductId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WMS_API_-_Products_UpdateProductRequest'
+            example:
+              name: Laptop ASUS Updated
+              sku: LAP-ASUS-001
+              description: Laptop kantor
+              minimumStock: 5
+              categoryId: 550e8400-e29b-41d4-a716-446655440000
+              locationId: 660e8400-a716-446655440000
+              isActive: true
+      responses:
+        '200':
+          description: Produk berhasil diperbarui
+        '400':
+          description: Validasi gagal atau data sudah digunakan
+        '401':
+          description: Unauthorized
+        '403':
+          description: Hanya ADMIN
+        '404':
+          description: Produk tidak ditemukan
+    delete:
+      tags:
+        - Products
+      summary: Menghapus produk
+      security:
+        - WMS_API_-_Products_bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WMS_API_-_Products_ProductId'
+      responses:
+        '200':
+          description: Produk berhasil dihapus
+        '400':
+          description: Produk memiliki stock movement
+        '401':
+          description: Unauthorized
+        '403':
+          description: Hanya ADMIN
+        '404':
+          description: Produk tidak ditemukan
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register user baru
+      description: Membuat akun user baru.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WMS_API_-_Authentication_RegisterRequest'
+            example:
+              name: Staff Gudang
+              email: staff@wms.com
+              password: password123
+      responses:
+        '201':
+          description: Registrasi berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WMS_API_-_Authentication_RegisterResponse'
+        '400':
+          description: Validasi gagal atau email sudah digunakan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WMS_API_-_Authentication_ErrorResponse'
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login user
+      description: >-
+        Login menggunakan email dan password untuk mendapatkan access token dan
+        refresh token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WMS_API_-_Authentication_LoginRequest'
+            example:
+              email: admin@wms.com
+              password: password123
+      responses:
+        '200':
+          description: Login berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WMS_API_-_Authentication_LoginResponse'
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WMS_API_-_Authentication_ErrorResponse'
+        '401':
+          description: Email atau password salah
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WMS_API_-_Authentication_ErrorResponse'
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Mendapatkan data user yang sedang login
+      security:
+        - WMS_API_-_Authentication_bearerAuth: []
+      responses:
+        '200':
+          description: Data user berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WMS_API_-_Authentication_MeResponse'
+        '401':
+          description: Token tidak valid atau tidak diberikan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WMS_API_-_Authentication_ErrorResponse'
+        '404':
+          description: User tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WMS_API_-_Authentication_ErrorResponse'
+  /locations:
+    post:
+      tags:
+        - Locations
+      summary: Membuat lokasi
+      security:
+        - WMS_API_-_Locations_bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WMS_API_-_Locations_CreateLocationRequest'
+            example:
+              name: Rak A1
+              code: A1
+      responses:
+        '201':
+          description: Lokasi berhasil dibuat
+        '400':
+          description: Validasi gagal atau nama/code sudah digunakan
+        '401':
+          description: Unauthorized
+        '403':
+          description: Hanya ADMIN
+    get:
+      tags:
+        - Locations
+      summary: Mendapatkan semua lokasi
+      security:
+        - WMS_API_-_Locations_bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: search
+          in: query
+          description: Mencari berdasarkan nama atau code lokasi
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - name_asc
+              - name_desc
+              - code_asc
+              - created_desc
+      responses:
+        '200':
+          description: Data lokasi berhasil diambil
+        '401':
+          description: Unauthorized
+  /locations/{id}:
+    get:
+      tags:
+        - Locations
+      summary: Mendapatkan lokasi berdasarkan ID
+      security:
+        - WMS_API_-_Locations_bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WMS_API_-_Locations_LocationId'
+      responses:
+        '200':
+          description: Data lokasi berhasil diambil
+        '400':
+          description: ID lokasi tidak valid
+        '401':
+          description: Unauthorized
+        '404':
+          description: Lokasi tidak ditemukan
+    put:
+      tags:
+        - Locations
+      summary: Memperbarui lokasi
+      security:
+        - WMS_API_-_Locations_bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WMS_API_-_Locations_LocationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WMS_API_-_Locations_UpdateLocationRequest'
+            example:
+              name: Rak A2
+              code: A2
+              isActive: true
+      responses:
+        '200':
+          description: Lokasi berhasil diperbarui
+        '400':
+          description: Validasi gagal atau nama/code sudah digunakan
+        '401':
+          description: Unauthorized
+        '403':
+          description: Hanya ADMIN
+        '404':
+          description: Lokasi tidak ditemukan
+    delete:
+      tags:
+        - Locations
+      summary: Menghapus lokasi
+      security:
+        - WMS_API_-_Locations_bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/WMS_API_-_Locations_LocationId'
+      responses:
+        '200':
+          description: Lokasi berhasil dihapus
+        '400':
+          description: Lokasi masih digunakan oleh produk
+        '401':
+          description: Unauthorized
+        '403':
+          description: Hanya ADMIN
+        '404':
+          description: Lokasi tidak ditemukan
+components:
+  securitySchemes:
+    WMS_API_-_Stock_Movements_bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    WMS_API_-_Categories_bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    WMS_API_-_Reports_bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    WMS_API_-_Dashboard_bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    WMS_API_-_Activity_Logs_bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    WMS_API_-_Products_bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    WMS_API_-_Authentication_bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    WMS_API_-_Locations_bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    WMS_API_-_Stock_Movements_CreateMovementRequest:
+      type: object
+      required:
+        - productId
+        - quantity
+      properties:
+        productId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        quantity:
+          type: integer
+          minimum: 1
+          example: 10
+        notes:
+          type: string
+          example: Barang masuk dari supplier
+    WMS_API_-_Categories_CreateCategoryRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 3
+          example: Elektronik
+        description:
+          type: string
+          example: Kategori produk elektronik
+    WMS_API_-_Categories_UpdateCategoryRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 3
+          example: Elektronik
+        description:
+          type: string
+          example: Kategori produk elektronik
+        isActive:
+          type: boolean
+          example: true
+    WMS_API_-_Categories_Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Elektronik
+        description:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    WMS_API_-_Categories_CategoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Kategori berhasil dibuat
+        data:
+          $ref: '#/components/schemas/WMS_API_-_Categories_Category'
+    WMS_API_-_Products_CreateProductRequest:
+      type: object
+      required:
+        - name
+        - sku
+        - stock
+        - minimumStock
+        - categoryId
+        - locationId
+      properties:
+        name:
+          type: string
+          minLength: 3
+          example: Laptop ASUS
+        sku:
+          type: string
+          example: LAP-ASUS-001
+        description:
+          type: string
+          example: Laptop untuk kantor
+        stock:
+          type: integer
+          minimum: 0
+          example: 10
+        minimumStock:
+          type: integer
+          minimum: 0
+          example: 3
+        categoryId:
+          type: string
+          format: uuid
+        locationId:
+          type: string
+          format: uuid
+    WMS_API_-_Products_UpdateProductRequest:
+      type: object
+      required:
+        - name
+        - sku
+        - minimumStock
+        - categoryId
+        - locationId
+      properties:
+        name:
+          type: string
+          minLength: 3
+        sku:
+          type: string
+        description:
+          type: string
+        minimumStock:
+          type: integer
+          minimum: 0
+        categoryId:
+          type: string
+          format: uuid
+        locationId:
+          type: string
+          format: uuid
+        isActive:
+          type: boolean
+    WMS_API_-_Products_Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sku:
+          type: string
+        description:
+          type: string
+          nullable: true
+        stock:
+          type: integer
+        minimumStock:
+          type: integer
+        categoryId:
+          type: string
+          format: uuid
+        locationId:
+          type: string
+          format: uuid
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    WMS_API_-_Authentication_RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 3
+          description: Nama user, minimal 3 karakter.
+          example: Staff Gudang
+        email:
+          type: string
+          format: email
+          description: Email user.
+          example: staff@wms.com
+        password:
+          type: string
+          minLength: 6
+          description: Password, minimal 6 karakter.
+          example: password123
+    WMS_API_-_Authentication_LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@wms.com
+        password:
+          type: string
+          minLength: 1
+          example: password123
+    WMS_API_-_Authentication_RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Registrasi berhasil
+        data:
+          $ref: '#/components/schemas/WMS_API_-_Authentication_User'
+    WMS_API_-_Authentication_LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Login berhasil
+        accessToken:
+          type: string
+          description: JWT access token.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refreshToken:
+          type: string
+          description: JWT refresh token.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    WMS_API_-_Authentication_MeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Data user berhasil diambil
+        data:
+          $ref: '#/components/schemas/WMS_API_-_Authentication_User'
+    WMS_API_-_Authentication_User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        name:
+          type: string
+          example: Staff Gudang
+        email:
+          type: string
+          format: email
+          example: staff@wms.com
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - STAFF
+          example: STAFF
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-08-22T08:00:00.000Z'
+    WMS_API_-_Authentication_ErrorResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Email atau password salah
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    WMS_API_-_Locations_CreateLocationRequest:
+      type: object
+      required:
+        - name
+        - code
+      properties:
+        name:
+          type: string
+          minLength: 3
+          example: Rak A1
+        code:
+          type: string
+          minLength: 1
+          maxLength: 10
+          example: A1
+    WMS_API_-_Locations_UpdateLocationRequest:
+      type: object
+      required:
+        - name
+        - code
+      properties:
+        name:
+          type: string
+          minLength: 3
+          example: Rak A2
+        code:
+          type: string
+          minLength: 1
+          maxLength: 10
+          example: A2
+        isActive:
+          type: boolean
+          example: true
+  parameters:
+    WMS_API_-_Categories_CategoryId:
+      name: id
+      in: path
+      required: true
+      description: UUID kategori
+      schema:
+        type: string
+        format: uuid
+    WMS_API_-_Products_ProductId:
+      name: id
+      in: path
+      required: true
+      description: UUID produk
+      schema:
+        type: string
+        format: uuid
+    WMS_API_-_Locations_LocationId:
+      name: id
+      in: path
+      required: true
+      description: UUID lokasi
+      schema:
+        type: string
+        format: uuid

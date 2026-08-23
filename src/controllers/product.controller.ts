@@ -2,7 +2,7 @@ import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/AppError';
 import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-
+import { logActivity } from '../services/activity-log.service';
 import {
   type CreateProductRequest,
   type GetAllProductRequest,
@@ -57,6 +57,23 @@ export const createProduct = catchAsync(async (req, res) => {
       locationId,
     },
   });
+
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'CREATE',
+      entity: 'Products',
+      entityId: product.id,
+      detail: {
+        name,
+        sku,
+        categoryId,
+        locationId,
+      },
+    });
+  }
 
   res.status(201).json({
     success: true,
@@ -214,6 +231,28 @@ export const updateProduct = catchAsync(async (req, res) => {
     },
   });
 
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'UPDATE',
+      entity: 'Products',
+      entityId: id,
+      detail: {
+        changes: {
+          name,
+          sku,
+          description,
+          minimumStock,
+          categoryId,
+          locationId,
+          isActive,
+        },
+      },
+    });
+  }
+
   res.status(200).json({
     success: true,
     message: 'Produk berhasil diperbarui',
@@ -245,6 +284,17 @@ export const deleteProduct = catchAsync(async (req, res) => {
   await prisma.products.delete({
     where: { id },
   });
+
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'DELETE',
+      entity: 'Products',
+      entityId: id,
+    });
+  }
 
   res.status(200).json({
     success: true,

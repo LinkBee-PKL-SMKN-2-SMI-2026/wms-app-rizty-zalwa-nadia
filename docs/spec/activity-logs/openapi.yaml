@@ -1,0 +1,75 @@
+openapi: 3.1.0
+info:
+  title: WMS API - Activity Logs
+  version: 1.0.0
+  description: API untuk melihat riwayat aktivitas pengguna dalam sistem.
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: Activity Logs
+    description: Activity log endpoints
+
+paths:
+  /activity-logs:
+    get:
+      tags: [Activity Logs]
+      summary: Mendapatkan activity logs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: userId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum:
+              - CREATE
+              - UPDATE
+              - DELETE
+              - LOGIN
+              - LOGOUT
+        - name: entity
+          in: query
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Activity logs berhasil diambil
+        '401':
+          description: Unauthorized
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,0 +1,241 @@
+openapi: 3.1.0
+
+info:
+  title: WMS API - Authentication
+  version: 1.0.0
+  description: API authentication untuk Warehouse Management System.
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: Auth
+    description: Authentication endpoints
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register user baru
+      description: Membuat akun user baru.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              name: Staff Gudang
+              email: staff@wms.com
+              password: password123
+      responses:
+        '201':
+          description: Registrasi berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Validasi gagal atau email sudah digunakan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login user
+      description: Login menggunakan email dan password untuk mendapatkan access token dan refresh token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: admin@wms.com
+              password: password123
+      responses:
+        '200':
+          description: Login berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Email atau password salah
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Mendapatkan data user yang sedang login
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Data user berhasil diambil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '401':
+          description: Token tidak valid atau tidak diberikan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 3
+          description: Nama user, minimal 3 karakter.
+          example: Staff Gudang
+        email:
+          type: string
+          format: email
+          description: Email user.
+          example: staff@wms.com
+        password:
+          type: string
+          minLength: 6
+          description: Password, minimal 6 karakter.
+          example: password123
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@wms.com
+        password:
+          type: string
+          minLength: 1
+          example: password123
+
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Registrasi berhasil
+        data:
+          $ref: '#/components/schemas/User'
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Login berhasil
+        accessToken:
+          type: string
+          description: JWT access token.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refreshToken:
+          type: string
+          description: JWT refresh token.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    MeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Data user berhasil diambil
+        data:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        name:
+          type: string
+          example: Staff Gudang
+        email:
+          type: string
+          format: email
+          example: staff@wms.com
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - STAFF
+          example: STAFF
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-08-22T08:00:00.000Z
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Email atau password salah
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string

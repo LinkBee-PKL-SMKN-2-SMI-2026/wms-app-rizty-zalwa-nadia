@@ -2,7 +2,7 @@ import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/AppError';
 import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-
+import { logActivity } from '../services/activity-log.service';
 import {
   type CreateLocationRequest,
   type GetAllLocationRequest,
@@ -44,6 +44,21 @@ export const createLocation = catchAsync(async (req, res) => {
       code,
     },
   });
+
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'CREATE',
+      entity: 'Locations',
+      entityId: location.id,
+      detail: {
+        name,
+        code,
+      },
+    });
+  }
 
   res.status(201).json({
     success: true,
@@ -179,6 +194,24 @@ export const updateLocation = catchAsync(async (req, res) => {
     },
   });
 
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'UPDATE',
+      entity: 'Locations',
+      entityId: id,
+      detail: {
+        changes: {
+          name,
+          code,
+          isActive,
+        },
+      },
+    });
+  }
+
   res.status(200).json({
     success: true,
     message: 'Lokasi berhasil diperbarui',
@@ -211,6 +244,17 @@ export const deleteLocation = catchAsync(async (req, res) => {
   await prisma.locations.delete({
     where: { id },
   });
+
+  const userId = req.user?.userId;
+
+  if (userId) {
+    await logActivity({
+      userId,
+      action: 'DELETE',
+      entity: 'Locations',
+      entityId: id,
+    });
+  }
 
   res.status(200).json({
     success: true,
