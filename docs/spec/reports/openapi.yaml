@@ -1,0 +1,72 @@
+openapi: 3.1.0
+info:
+  title: WMS API - Reports
+  version: 1.0.0
+  description: API untuk laporan stok dan ringkasan warehouse.
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: Reports
+    description: Reporting endpoints
+
+paths:
+  /reports/summary:
+    get:
+      tags: [Reports]
+      summary: Mendapatkan ringkasan warehouse
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          description: Tanggal laporan dengan format YYYY-MM-DD
+          schema:
+            type: string
+            example: '2026-08-22'
+      responses:
+        '200':
+          description: Summary berhasil diambil
+        '401':
+          description: Unauthorized
+
+  /reports/low-stock:
+    get:
+      tags: [Reports]
+      summary: Mendapatkan produk dengan stok rendah
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: threshold
+          in: query
+          description: Batas stok yang dianggap rendah
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Low stock products berhasil diambil
+        '401':
+          description: Unauthorized
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

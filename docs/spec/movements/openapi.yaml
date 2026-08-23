@@ -1,0 +1,137 @@
+openapi: 3.1.0
+info:
+  title: WMS API - Stock Movements
+  version: 1.0.0
+  description: API untuk mencatat dan melihat pergerakan stok.
+
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: Stock Movements
+    description: Stock inbound, outbound, and history
+
+paths:
+  /movements/inbound:
+    post:
+      tags: [Stock Movements]
+      summary: Mencatat stock inbound
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMovementRequest'
+            example:
+              productId: 550e8400-e29b-41d4-a716-446655440000
+              quantity: 10
+              notes: Barang masuk dari supplier
+      responses:
+        '201':
+          description: Stock inbound berhasil dicatat
+        '400':
+          description: Validasi gagal
+        '401':
+          description: Unauthorized
+        '404':
+          description: Produk tidak ditemukan
+
+  /movements/outbound:
+    post:
+      tags: [Stock Movements]
+      summary: Mencatat stock outbound
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMovementRequest'
+            example:
+              productId: 550e8400-e29b-41d4-a716-446655440000
+              quantity: 2
+              notes: Barang keluar untuk pengiriman
+      responses:
+        '201':
+          description: Stock outbound berhasil dicatat
+        '400':
+          description: Validasi gagal atau stok tidak mencukupi
+        '401':
+          description: Unauthorized
+        '404':
+          description: Produk tidak ditemukan
+
+  /movements/history:
+    get:
+      tags: [Stock Movements]
+      summary: Mendapatkan riwayat stock movement
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: productId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - INBOUND
+              - OUTBOUND
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: History stock movement berhasil diambil
+        '401':
+          description: Unauthorized
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CreateMovementRequest:
+      type: object
+      required:
+        - productId
+        - quantity
+      properties:
+        productId:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        quantity:
+          type: integer
+          minimum: 1
+          example: 10
+        notes:
+          type: string
+          example: Barang masuk dari supplier
