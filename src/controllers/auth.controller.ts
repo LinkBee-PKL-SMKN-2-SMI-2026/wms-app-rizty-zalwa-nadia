@@ -5,6 +5,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { logger } from '../utils/logger';
 import { type LoginRequest, type RegisterRequest } from '../models/auth.dto';
 import { type TokenPayload, type AuthRequest } from '../models/auth.model';
+import { logActivity } from '../services/activity-log.service';
 import bcrypt from 'bcrypt';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
 
@@ -24,6 +25,15 @@ export const register = catchAsync(async (req, res) => {
   const newUser = await prisma.users.create({
     data: { name, email, password: hashedPassword },
   });
+
+  if (newUser) {
+    await logActivity({
+      userId: newUser.id,
+      action: 'CREATE',
+      entity: 'Users',
+      entityId: newUser.id,
+    });
+  }
 
   logger.info({ event: 'USER_REGISTERED', email }, `Staf baru terdaftar: ${name}`);
   res.status(201).json({
@@ -59,6 +69,12 @@ export const login = catchAsync(async (req, res) => {
   await prisma.users.update({
     where: { id: user.id },
     data: { refreshToken: refreshToken },
+  });
+
+  await logActivity({
+    userId: user.id,
+    action: 'LOGIN',
+    entity: 'Users',
   });
 
   logger.info({ event: 'USER_LOGIN', email }, 'Staf berhasil login');

@@ -2,7 +2,7 @@ import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/AppError';
 import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-
+import { logActivity } from '../services/activity-log.service';
 import {
   type CreateInboundRequest,
   type CreateOutboundRequest,
@@ -57,6 +57,18 @@ export const createInbound = catchAsync(async (req, res) => {
     };
   });
 
+  await logActivity({
+    userId,
+    action: 'CREATE',
+    entity: 'Stock_Movements',
+    entityId: result.movement.id,
+    detail: {
+      type: 'INBOUND',
+      productId,
+      quantity,
+    },
+  });
+
   res.status(201).json({
     success: true,
     message: 'Stock inbound berhasil dicatat',
@@ -107,6 +119,18 @@ export const createOutbound = catchAsync(async (req, res) => {
       movement,
       updatedProduct,
     };
+  });
+
+  await logActivity({
+    userId,
+    action: 'CREATE',
+    entity: 'Stock_Movements',
+    entityId: result.movement.id,
+    detail: {
+      type: 'OUTBOUND',
+      productId,
+      quantity,
+    },
   });
 
   res.status(201).json({
